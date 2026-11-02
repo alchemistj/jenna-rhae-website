@@ -1,0 +1,51 @@
+---
+/**
+ * A WordPress photo. Large inline photos sit beside the following text on desktop (Rule 4.2).
+ * Small icons stay at their own size. Nothing here is the page hero.
+ */
+import { Image } from "astro:assets";
+import { getImageMeta, type ImageKey } from "../lib/images";
+
+interface Props {
+  image: ImageKey;
+  alt: string;
+  kind: "feature" | "inline" | "decor" | "author";
+  side?: "left" | "right";
+}
+const { image, alt, kind, side = "right" } = Astro.props;
+const meta = getImageMeta(image);
+const large = kind === "inline" && meta.width > 280;
+const width =
+  kind === "decor" ? Math.min(meta.width, 70) :
+  kind === "author" ? 96 :
+  kind === "feature" || large ? Math.min(meta.width, 720) :
+  meta.width;
+const height = Math.max(1, Math.round((meta.height * width) / meta.width));
+const responsive = kind === "feature" || large;
+const widths = [
+  ...new Set((responsive ? [400, 720, width] : [width]).filter((w) => w > 0 && w <= meta.width)),
+];
+if (widths.length === 0) widths.push(Math.min(width, meta.width));
+---
+
+<figure
+  class:list={[
+    "wp-figure",
+    `wp-${kind}`,
+    kind === "inline" && (large ? "is-large" : "is-small"),
+    kind === "inline" && large && `side-${side}`,
+  ]}
+>
+  <Image
+    src={meta}
+    alt={alt}
+    width={width}
+    height={height}
+    widths={widths}
+    sizes={kind === "author" ? "96px" : kind === "decor" ? "70px" : responsive ? "(min-width: 768px) 400px, 100vw" : `${width}px`}
+    format="webp"
+    loading="lazy"
+    decoding="async"
+    class:list={[kind === "author" ? "h-24 w-24 rounded-full object-cover" : "h-auto w-full"]}
+  />
+</figure>

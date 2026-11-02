@@ -1,0 +1,22 @@
+---
+/** FAQ with native <details>. Every answer is in the HTML. Strings may contain <em> from the copy files. */
+import type { FaqItem } from "../data/types";
+
+interface Props {
+  items: FaqItem[];
+}
+const { items } = Astro.props;
+---
+
+<div>
+  {
+    items.map((item) => (
+      <details class="faq-item">
+        <summary>
+          <h3 class="inline text-lg" set:html={item.q} />
+        </summary>
+        <p class="faq-answer soft" set:html={item.a} />
+      </details>
+    ))
+  }
+</div>

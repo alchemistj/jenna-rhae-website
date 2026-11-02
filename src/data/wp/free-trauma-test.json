@@ -1,0 +1,26 @@
+{
+  "slug": "free-trauma-test",
+  "url": "/free-trauma-test/",
+  "liveUrl": "https://jennarhae.com/free-trauma-test/",
+  "type": "page",
+  "title": "Free Trauma Test | Uncover Hidden Triggers From Past Trauma",
+  "metaDescription": "Take this free trauma test to uncover hidden triggers from past experiences. Discover how yesterday’s trauma may still be affecting your daily life.",
+  "h1": null,
+  "modifiedDate": "2026-03-10T22:05:11+00:00",
+  "schemaTypes": [
+    "BreadcrumbList",
+    "WebPage",
+    "WebSite"
+  ],
+  "featuredImage": null,
+  "author": null,
+  "sections": [
+    {
+      "type": "embed",
+      "kind": "quiz",
+      "src": "https://api.leadconnectorhq.com/widget/quiz/yXQ8xBBTLGV4uQCjRI0i",
+      "title": "quiz"
+    }
+  ],
+  "faq": []
+}

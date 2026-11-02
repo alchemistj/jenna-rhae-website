@@ -1,0 +1,19 @@
+---
+/** Final call-to-action band: a quote or headline and the primary button, in the dark brand color. */
+import Section from "./Section.astro";
+import BookButton from "./BookButton.astro";
+
+interface Props {
+  quote: string;
+  ctaLabel: string;
+  bookHref: string;
+}
+const { quote, ctaLabel, bookHref } = Astro.props;
+---
+
+<Section bg="charcoal">
+  <div class="mx-auto max-w-2xl text-center">
+    <p class="mb-8 font-display text-3xl font-bold leading-tight text-cream md:text-4xl">{quote}</p>
+    <BookButton label={ctaLabel} href={bookHref} />
+  </div>
+</Section>

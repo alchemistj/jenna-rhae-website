@@ -1,0 +1,72 @@
+---
+/** Site footer. Copy from src/data/site.ts. Legal links render only for published routes. */
+import { footer } from "../data/site";
+import { isPublished } from "../lib/routeRegistry";
+import { EMAIL, MAILTO } from "../lib/site";
+
+interface Props {
+  bookHref: string;
+}
+const { bookHref } = Astro.props;
+const legal = footer.legal.filter((item) => isPublished(item.href));
+---
+
+<footer class="bg-charcoal text-cream">
+  <div class="container-narrow py-14">
+    <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+      <div>
+        <div class="mb-4 font-display text-2xl font-bold"><span class="text-gold">J</span>ENNARHAE</div>
+        <p class="mb-4 text-sm leading-relaxed text-cream/85">{footer.about}</p>
+        <ul class="space-y-2 text-sm text-cream/85">
+          <li>
+            <a href={MAILTO} class="underline-offset-2 hover:text-gold hover:underline">{EMAIL}</a>
+          </li>
+          <li>
+            <a href={bookHref} class="underline-offset-2 hover:text-gold hover:underline">{footer.bookLink}</a>
+          </li>
+          <li class="text-cream/70">{footer.appointment}</li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="mb-4 font-body text-sm font-bold tracking-wide text-gold">{footer.servicesHeading}</h2>
+        <ul class="space-y-2 text-sm text-cream/85">
+          {footer.services.map((item) => <li>{item}</li>)}
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="mb-4 font-body text-sm font-bold tracking-wide text-gold">{footer.servingHeading}</h2>
+        <ul class="grid grid-cols-2 gap-x-3 gap-y-2 text-sm text-cream/85">
+          {footer.serving.map((item) => <li>{item}</li>)}
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="mb-4 font-body text-sm font-bold tracking-wide text-gold">{footer.whyHeading}</h2>
+        <ul class="space-y-2 text-sm text-cream/85">
+          {
+            footer.why.map((item) => (
+              <li class="flex gap-2">
+                <span class="text-gold" aria-hidden="true">
+                  ✓
+                </span>
+                <span>{item}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+
+    <div
+      class="mt-12 flex flex-col gap-3 border-t border-cream/20 pt-6 text-xs text-cream/75 md:flex-row md:items-center md:justify-between"
+    >
+      <div class="flex flex-wrap gap-x-4 gap-y-1">
+        <span>{footer.copyright}</span>
+        {legal.map((item) => <a href={item.href} class="py-1 hover:text-gold hover:underline">{item.label}</a>)}
+      </div>
+      <div>{footer.tagline}</div>
+    </div>
+  </div>
+</footer>

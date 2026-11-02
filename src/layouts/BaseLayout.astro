@@ -1,0 +1,119 @@
+---
+/**
+ * Base layout: SEO head (canonical on the apex host, Open Graph, JSON-LD), then the body in first-frame order:
+ *   skip link, then .atf { hero photo, header, hero text, parse marker }, then <main>, footer, mobile bar.
+ * The hero photo is the first paintable element in <body>. Header and hero are held until the marker is parsed.
+ */
+import { getImage } from "astro:assets";
+import "../styles/global.css";
+import type { PageData } from "../data/types";
+import { header } from "../data/site";
+import { getRoute } from "../lib/routeRegistry";
+import { images } from "../lib/images";
+import { canonicalUrl, buildJsonLd } from "../lib/seo";
+import { SITE_NAME, SITE_URL, bookHref } from "../lib/site";
+import Header from "../components/Header.astro";
+import Hero from "../components/Hero.astro";
+import HeroPhoto from "../components/HeroPhoto.astro";
+import Footer from "../components/Footer.astro";
+import MobileBar from "../components/MobileBar.astro";
+import PageBlocks from "../components/PageBlocks.astro";
+
+interface Props {
+  page: PageData;
+}
+const { page } = Astro.props;
+
+const route = getRoute(page.path);
+if (!route || route.pending) {
+  throw new Error(`Route ${page.path} is not published in src/lib/routeRegistry.ts`);
+}
+const hasBooking = route.hasBooking === true;
+const hasBookingBlock = page.blocks.some((block) => block.type === "booking");
+if (hasBooking !== hasBookingBlock) {
+  throw new Error(`Route ${page.path}: registry hasBooking (${hasBooking}) does not match its booking block (${hasBookingBlock})`);
+}
+const bookLink = bookHref(hasBooking);
+
+const { seo } = page;
+const absolute = async (key: keyof typeof images) => {
+  const og = await getImage({ src: images[key], width: 1200, height: 630, format: "jpeg" });
+  return `${SITE_URL}${og.src}`;
+};
+const ogImage = await absolute(seo.ogImage ?? "hero-home");
+const logoImage = await getImage({ src: images.logo, format: "png" });
+const faq = page.blocks.flatMap((block) => (block.type === "faq" ? block.items : []));
+const articleImage = page.article
+  ? `${SITE_URL}${(await getImage({ src: images[page.article.image], width: 1200, height: 630, format: "jpeg" })).src}`
+  : undefined;
+const jsonLd = buildJsonLd({
+  path: page.path,
+  title: seo.title,
+  description: seo.description,
+  logoUrl: `${SITE_URL}${logoImage.src}`,
+  breadcrumbLabel: route.label,
+  faq,
+  article: page.article
+    ? {
+        headline: page.article.headline,
+        datePublished: page.article.datePublished,
+        dateModified: page.article.dateModified,
+        authorName: page.article.authorName,
+        imageUrl: articleImage,
+      }
+    : undefined,
+});
+const canonical = canonicalUrl(page.path);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{seo.title}</title>
+    <meta name="description" content={seo.description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="author" content="Jenna White, MA" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content={seo.ogTitle ?? seo.title} />
+    <meta property="og:description" content={seo.ogDescription ?? seo.description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={seo.ogTitle ?? seo.title} />
+    <meta name="twitter:description" content={seo.ogDescription ?? seo.description} />
+    <meta name="twitter:image" content={ogImage} />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{header.skipLink}</a>
+    <div class="atf">
+      {
+        page.hero && (
+          <HeroPhoto
+            image={page.hero.image}
+            alt={page.hero.imageAlt}
+            objectPosition={page.hero.objectPosition}
+            overlayOpacity={page.hero.overlayOpacity}
+          />
+        )
+      }
+      <Header path={page.path} bookHref={bookLink} />
+      {page.hero && <Hero hero={page.hero} bookHref={bookLink} />}
+      <span class="atf-ready" hidden></span>
+    </div>
+    <main id="main">
+      <PageBlocks page={page} bookHref={bookLink} />
+    </main>
+    <Footer bookHref={bookLink} />
+    <MobileBar bookHref={bookLink} />
+    <script>
+      import { scheduleGa } from "../lib/analytics";
+      scheduleGa();
+    </script>
+  </body>
+</html>

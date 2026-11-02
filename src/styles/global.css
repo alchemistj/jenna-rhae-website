@@ -1,0 +1,549 @@
+@import "tailwindcss";
+
+@theme {
+  --color-charcoal: #1c1c1c;
+  --color-cream: #faf7f4;
+  --color-gold: #c8a882;
+  --color-accent: #a51c30;
+  --color-line: #ddd5cc;
+  /* Device fonts only (SOP section 5): the first frame never reflows when a font arrives. */
+  --font-display: Georgia, "Times New Roman", "Noto Serif", serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", "Noto Sans", Roboto, sans-serif;
+}
+
+:root {
+  --content-max: 900px;
+  --content-pad: 24px;
+  --header-h: 64px;
+  --bar-h: 72px;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-line);
+  }
+
+  html {
+    background-color: var(--color-cream);
+  }
+
+  body {
+    background-color: var(--color-cream);
+    color: var(--color-charcoal);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: var(--bar-h);
+  }
+
+  @media (min-width: 768px) {
+    body {
+      padding-bottom: 0;
+    }
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+  }
+
+  h1 {
+    font-size: clamp(2.25rem, 5vw, 3.75rem);
+  }
+
+  h2 {
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  }
+
+  h3 {
+    font-size: clamp(1.15rem, 2vw, 1.4rem);
+    font-family: var(--font-body);
+  }
+
+  p {
+    line-height: 1.7;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* One shared content width: 900px of content plus 24px of padding on each side. */
+  .container-narrow {
+    width: 100%;
+    box-sizing: border-box;
+    max-width: calc(var(--content-max) + var(--content-pad) * 2);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--content-pad);
+    padding-right: var(--content-pad);
+  }
+
+  .skip-link {
+    position: absolute;
+    left: 8px;
+    top: -100px;
+    z-index: 100;
+    background: var(--color-charcoal);
+    color: var(--color-cream);
+    padding: 12px 16px;
+  }
+
+  .skip-link:focus {
+    top: 8px;
+  }
+
+  /* First frame: the whole above-the-fold block paints together once its last element has been parsed. */
+  .atf {
+    position: relative;
+    padding-top: var(--header-h);
+  }
+
+  .atf:not(:has(> .atf-ready)) {
+    visibility: hidden;
+  }
+
+  .atf-photo {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: var(--header-h);
+    width: 100%;
+    height: calc(100% - var(--header-h));
+    object-fit: cover;
+  }
+
+  .atf-scrim {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: var(--header-h);
+    bottom: 0;
+  }
+
+  .hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: min(78vh, 720px);
+    color: var(--color-cream);
+  }
+
+  .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    height: var(--header-h);
+    background-color: var(--color-cream);
+    border-bottom: 1px solid var(--color-line);
+    transition: transform 0.2s ease;
+  }
+
+  .site-header.is-hidden {
+    transform: translateY(-100%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-header {
+      transition: none;
+    }
+  }
+
+  .btn-accent {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-accent);
+    color: var(--color-cream);
+    font-weight: 700;
+    font-family: var(--font-body);
+    padding: 0.95rem 1.75rem;
+    min-height: 48px;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    text-align: center;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .btn-accent:hover {
+    background-color: #8a1727;
+    transform: translateY(-1px);
+  }
+
+  .btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--color-charcoal);
+    color: var(--color-charcoal);
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+    min-height: 48px;
+    font-size: 0.875rem;
+    background: transparent;
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  a.btn-outline:hover {
+    background-color: var(--color-charcoal);
+    color: var(--color-cream);
+  }
+
+  .link-accent {
+    color: var(--color-accent);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .link-accent:hover {
+    text-decoration: underline;
+  }
+
+  .eyebrow {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--eyebrow, var(--color-accent));
+  }
+
+  /* Section bands. --soft is body text, --eyebrow is the small label above a heading. All pass AA. */
+  .band-cream {
+    background-color: var(--color-cream);
+    color: var(--color-charcoal);
+    --soft: rgb(28 28 28 / 0.84);
+    --eyebrow: var(--color-accent);
+    --card: var(--color-cream);
+  }
+
+  .band-gold {
+    background-color: var(--color-gold);
+    color: var(--color-charcoal);
+    --soft: rgb(28 28 28 / 0.92);
+    --eyebrow: rgb(28 28 28 / 0.88);
+    --card: var(--color-cream);
+  }
+
+  .band-charcoal {
+    background-color: var(--color-charcoal);
+    color: var(--color-cream);
+    --soft: rgb(250 247 244 / 0.88);
+    --eyebrow: var(--color-gold);
+  }
+
+  .soft {
+    color: var(--soft);
+  }
+
+  .card {
+    background-color: var(--color-cream);
+    border: 1px solid rgb(28 28 28 / 0.12);
+    padding: 1.5rem;
+    color: var(--color-charcoal);
+  }
+
+  a.card {
+    display: block;
+    text-decoration: none;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  a.card:hover {
+    box-shadow: 0 10px 24px rgb(28 28 28 / 0.12);
+    transform: translateY(-2px);
+  }
+
+  .card-soft {
+    color: rgb(28 28 28 / 0.84);
+  }
+
+  /* Native FAQ */
+  .faq-item {
+    border-bottom: 1px solid rgb(28 28 28 / 0.18);
+  }
+
+  .faq-item summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 1.25rem 2rem 1.25rem 0;
+    min-height: 48px;
+    font-weight: 700;
+    font-size: 1.125rem;
+    position: relative;
+  }
+
+  .faq-item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-item summary::after {
+    content: "+";
+    position: absolute;
+    right: 0.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--color-accent);
+  }
+
+  .faq-item[open] summary::after {
+    content: "\2212";
+  }
+
+  .faq-item .faq-answer {
+    padding-bottom: 1.25rem;
+  }
+
+  /* Two-column photo section */
+  .two-col {
+    display: grid;
+    gap: 2.5rem;
+    align-items: stretch;
+  }
+
+  .two-col-photo {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+  }
+
+  .two-col-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
+  }
+
+  @media (min-width: 768px) {
+    .two-col {
+      grid-template-columns: 1.35fr 1fr;
+    }
+
+    .two-col.photo-left {
+      grid-template-columns: 1fr 1.35fr;
+    }
+
+    .two-col.photo-left .two-col-photo {
+      order: -1;
+    }
+
+    .two-col-photo {
+      aspect-ratio: auto;
+      min-height: 100%;
+    }
+
+    .two-col-photo img {
+      position: absolute;
+      inset: 0;
+    }
+  }
+
+  .mobile-photo-first .two-col-photo {
+    order: -1;
+  }
+
+  @media (min-width: 768px) {
+    .mobile-photo-first .two-col-photo {
+      order: 0;
+    }
+
+    .mobile-photo-first.photo-left .two-col-photo {
+      order: -1;
+    }
+  }
+
+  /* Deferred embeds reserve their height so nothing shifts when they load. */
+  .deferred-embed {
+    position: relative;
+    width: 100%;
+    background-color: var(--color-cream);
+    border: 1px solid rgb(28 28 28 / 0.12);
+    min-height: var(--embed-h-mobile, 900px);
+  }
+
+  .deferred-embed iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  @media (min-width: 768px) {
+    .deferred-embed {
+      min-height: var(--embed-h, 820px);
+    }
+  }
+
+  .deferred-embed .embed-fallback {
+    padding: 1.5rem;
+  }
+
+  /* Form */
+  .field-input {
+    width: 100%;
+    background-color: var(--color-cream);
+    border: 1px solid rgb(28 28 28 / 0.4);
+    padding: 0.75rem 1rem;
+    min-height: 48px;
+    color: var(--color-charcoal);
+  }
+
+  .field-input::placeholder {
+    color: rgb(28 28 28 / 0.6);
+  }
+
+  .field-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 2px var(--color-accent);
+  }
+
+  .hp-field {
+    position: absolute;
+    left: -10000px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .mobile-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    background-color: var(--color-charcoal);
+    padding: 12px var(--content-pad) calc(12px + env(safe-area-inset-bottom));
+  }
+
+  @media (min-width: 768px) {
+    .mobile-bar {
+      display: none;
+    }
+  }
+
+  [id] {
+    scroll-margin-top: calc(var(--header-h) + 16px);
+  }
+
+  /* WordPress body. Large photos sit beside the text on desktop; small icons stay small. */
+  .wp-prose {
+    display: flow-root;
+  }
+
+  .wp-prose h2,
+  .wp-prose h3,
+  .wp-prose h4 {
+    margin-top: 1.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .wp-prose h2:first-child,
+  .wp-prose h3:first-child,
+  .wp-prose h4:first-child {
+    margin-top: 0;
+  }
+
+  .wp-prose p {
+    margin-bottom: 1rem;
+  }
+
+  .wp-prose ul,
+  .wp-prose ol {
+    margin: 0 0 1rem 1.25rem;
+  }
+
+  .wp-prose ul {
+    list-style: disc;
+  }
+
+  .wp-prose ol {
+    list-style: decimal;
+  }
+
+  .wp-prose li {
+    margin: 0.35rem 0;
+  }
+
+  .wp-prose a.link-accent {
+    text-decoration: underline;
+  }
+
+  .wp-figure {
+    margin: 1.25rem 0;
+  }
+
+  .wp-figure img {
+    height: auto;
+  }
+
+  .wp-decor {
+    width: 70px;
+    margin: 0;
+  }
+
+  .wp-feature {
+    max-width: min(100%, 28rem);
+    margin: 1.5rem 0 0;
+  }
+
+  .wp-cta {
+    margin-top: 1.5rem;
+  }
+
+  .author-box {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+  }
+
+  .author-box .wp-author {
+    flex: none;
+    width: 96px;
+    margin: 0;
+  }
+
+  @media (min-width: 768px) {
+    .wp-figure.is-large.side-right {
+      float: right;
+      width: 45%;
+      margin: 0.25rem 0 1rem 1.25rem;
+    }
+
+    .wp-figure.is-large.side-left {
+      float: left;
+      width: 45%;
+      margin: 0.25rem 1.25rem 1rem 0;
+    }
+
+    .wp-figure.is-small {
+      width: max-content;
+      max-width: 100%;
+    }
+
+    .wp-figure.is-small img {
+      width: auto;
+      max-width: 160px;
+    }
+  }
+}
