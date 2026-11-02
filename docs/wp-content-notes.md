@@ -26,7 +26,7 @@ Posts also have `publishedDate`, `readingTime`; `author` is `{name, bio, image}`
 All `text`, `items`, `bio` strings use simple inline markdown:
 - `[label](href)` links, `**bold**`, `*italic*`
 - a literal `\n` (newline char) is an in-paragraph `<br>`
-No other HTML appears. Internal links are root-relative with trailing slash (`/is-grief-trauma/`), with the host dropped. `/trauma-coaching/` becomes `/trauma-recovery-coaching/` (anchors kept, e.g. `#trauma-quiz`; the page builder should make sure that id exists on the Lovable page or point it at `#book`/the quiz). `/life-coach-columbia-mo/` links would map to `/christian-life-coach-kansas-city-mo/` (none occur in these pages). WordPress `#more-123` anchors were removed. External links (e.g. the Amazon link on Tenacious Grace) are untouched.
+No other HTML appears. Internal links are root-relative with trailing slash (`/is-grief-trauma/`), with the host dropped. `/trauma-coaching/` links stay as they are (the page keeps its WordPress URL; anchors kept, e.g. `#trauma-quiz`; the page builder should make sure that id exists on the Lovable page or point it at `#book`/the quiz). `/life-coach-columbia-mo/` links would map to `/christian-life-coach-kansas-city-mo/` (none occur in these pages). WordPress `#more-123` anchors were removed. External links (e.g. the Amazon link on Tenacious Grace) are untouched.
 
 ## Per page
 - **about**: h1 "About Me", 8 paragraphs, "Three fun facts about me:" (h4) and a 3-item list, 3 photos and the decorative flower icon.

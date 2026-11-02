@@ -22,11 +22,10 @@ Approved by Josh, 2 Nov 2026. Replaces the WordPress site at https://jennarhae.c
 - Canonical host: `https://jennarhae.com` (apex). `www` → apex.
 
 ## Pages (all with trailing slashes)
-From Lovable: `/`, `/trauma-recovery-coaching/`, `/christian-life-coach-kansas-city-mo/`, `/contact/`, `/privacy/`, `/terms/`, `/text-messaging-terms/`.
+From Lovable: `/`, `/trauma-coaching/` (kept at its WordPress URL, Josh 2 Nov), `/christian-life-coach-kansas-city-mo/`, `/contact/`, `/privacy/`, `/terms/`, `/text-messaging-terms/`.
 Rebuilt from WordPress at their **same URLs**: `/about/`, `/free-trauma-test/` (LeadConnector quiz `https://api.leadconnectorhq.com/widget/quiz/yXQ8xBBTLGV4uQCjRI0i`, deferred like the booking embed), `/tenacious-grace/`, `/blog/`, and the 7 posts `/what-does-a-trauma-coach-do/`, `/what-causes-complex-trauma/`, `/the-gift-hidden-in-the-ask/`, `/is-grief-trauma/`, `/what-to-do-after-trauma/`, `/trauma-nightmares/`, `/how-to-trust-after-trauma/`.
 
 ## Redirects (`vercel.json`, both slash forms, 301)
-- `/trauma-coaching` → `/trauma-recovery-coaching/`
 - `/life-coach-columbia-mo` → `/christian-life-coach-kansas-city-mo/`
 - WordPress leftovers: `/feed`, `/comments/feed` → `/blog/`. Anything else stays a 404.
 

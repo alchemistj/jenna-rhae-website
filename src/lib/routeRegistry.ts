@@ -27,7 +27,7 @@ export interface RouteEntry {
 export const routes: readonly RouteEntry[] = [
   { path: "/", label: "Home", kind: "page", hasBooking: true, photoHero: true, changefreq: "weekly", priority: 1 },
   {
-    path: "/trauma-recovery-coaching/",
+    path: "/trauma-coaching/",
     label: "Trauma Coaching",
     kind: "page",
     hasBooking: true,

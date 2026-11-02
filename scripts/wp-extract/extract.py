@@ -29,7 +29,6 @@ os.makedirs(IMG_DIR, exist_ok=True)
 
 HOSTS = {"jennarhae.com", "www.jennarhae.com"}
 REMAP = {
-    "/trauma-coaching/": "/trauma-recovery-coaching/",
     "/life-coach-columbia-mo/": "/christian-life-coach-kansas-city-mo/",
 }
 PAGES = ["about", "free-trauma-test", "tenacious-grace", "blog"]

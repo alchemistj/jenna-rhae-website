@@ -8,8 +8,6 @@
       "destination": "https://jennarhae.com/$1",
       "permanent": true
     },
-    { "source": "/trauma-coaching", "destination": "/trauma-recovery-coaching/", "permanent": true },
-    { "source": "/trauma-coaching/", "destination": "/trauma-recovery-coaching/", "permanent": true },
     { "source": "/life-coach-columbia-mo", "destination": "/christian-life-coach-kansas-city-mo/", "permanent": true },
     { "source": "/life-coach-columbia-mo/", "destination": "/christian-life-coach-kansas-city-mo/", "permanent": true },
     { "source": "/feed", "destination": "/blog/", "permanent": true },

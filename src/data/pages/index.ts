@@ -1,6 +1,6 @@
 import type { PageData } from "../types";
 import home from "./home";
-import trauma from "./trauma-recovery-coaching";
+import trauma from "./trauma-coaching";
 import kansasCity from "./christian-life-coach-kansas-city-mo";
 import contact from "./contact";
 import { privacy, terms, textMessagingTerms } from "./legal";

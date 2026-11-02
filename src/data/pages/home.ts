@@ -43,7 +43,7 @@ const page = {
         {
           title: "Trauma Recovery Coaching",
           body: "Break free from the survival patterns keeping you stuck. Faith-integrated, trauma-informed, and built around your pace.",
-          href: "/trauma-recovery-coaching/",
+          href: "/trauma-coaching/",
           linkLabel: "Learn More →",
         },
         {

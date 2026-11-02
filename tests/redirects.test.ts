@@ -27,16 +27,14 @@ describe("vercel.json redirects", () => {
     for (const r of pathRedirects) expect(r.permanent, r.source).toBe(true);
   });
 
-  it("covers the brief: trauma-coaching, life-coach-columbia-mo, feed and comments/feed", () => {
+  it("covers the brief: life-coach-columbia-mo, feed and comments/feed", () => {
     const map = new Map(pathRedirects.map((r) => [r.source, r.destination]));
-    expect(map.get("/trauma-coaching")).toBe("/trauma-recovery-coaching/");
-    expect(map.get("/trauma-coaching/")).toBe("/trauma-recovery-coaching/");
     expect(map.get("/life-coach-columbia-mo")).toBe("/christian-life-coach-kansas-city-mo/");
     expect(map.get("/life-coach-columbia-mo/")).toBe("/christian-life-coach-kansas-city-mo/");
     for (const source of ["/feed", "/feed/", "/comments/feed", "/comments/feed/"]) {
       expect(map.get(source), source).toBe("/blog/");
     }
-    expect(pathRedirects.length).toBe(8);
+    expect(pathRedirects.length).toBe(6);
   });
 
   it("sends www.jennarhae.com to the apex in one hop, first in the list", () => {
@@ -56,7 +54,7 @@ describe("vercel.json redirects", () => {
   it("sends /feed and /comments/feed to the published blog", () => {
     expect(getRoute("/blog/")).toBeDefined();
     expect(isPublished("/blog/")).toBe(true);
-    expect(isPublished("/trauma-recovery-coaching/")).toBe(true);
+    expect(isPublished("/trauma-coaching/")).toBe(true);
     expect(isPublished("/christian-life-coach-kansas-city-mo/")).toBe(true);
   });
 

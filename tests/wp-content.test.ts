@@ -83,8 +83,8 @@ function expectInOrder(text: string, parts: string[]) {
 
 describe("WordPress inline markdown", () => {
   it("renders bold, italic, links, and sends #trauma-quiz to the quiz", () => {
-    expect(rewriteHref("/trauma-recovery-coaching/#trauma-quiz")).toBe("/free-trauma-test/#trauma-quiz");
-    expect(renderInline("[**our Trauma Quiz**](/trauma-recovery-coaching/#trauma-quiz)")).toBe(
+    expect(rewriteHref("/trauma-coaching/#trauma-quiz")).toBe("/free-trauma-test/#trauma-quiz");
+    expect(renderInline("[**our Trauma Quiz**](/trauma-coaching/#trauma-quiz)")).toBe(
       '<a class="link-accent" href="/free-trauma-test/#trauma-quiz"><strong>our Trauma Quiz</strong></a>',
     );
     expect(renderInline("[take the Trauma Test](/free-trauma-test/)")).toBe(
@@ -153,7 +153,7 @@ describe("WordPress copy in the built pages", () => {
     expect(html).toContain('id="book"');
     expect(html).not.toMatch(/<iframe/i);
     for (const page of allPageHtml()) {
-      expect(page.html, page.path).not.toContain("/trauma-recovery-coaching/#trauma-quiz");
+      expect(page.html, page.path).not.toContain("/trauma-coaching/#trauma-quiz");
     }
     expect(readPage("/is-grief-trauma/")).toContain('href="/free-trauma-test/#trauma-quiz"');
     expect(readPage("/what-causes-complex-trauma/")).toContain('href="/free-trauma-test/#trauma-quiz"');

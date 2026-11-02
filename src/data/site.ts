@@ -17,7 +17,7 @@ export const header = {
   /** Nav links. Items whose route is pending in the route registry are not rendered. */
   nav: [
     { href: "/", label: "Home" },
-    { href: "/trauma-recovery-coaching/", label: "Trauma Coaching" },
+    { href: "/trauma-coaching/", label: "Trauma Coaching" },
     { href: "/christian-life-coach-kansas-city-mo/", label: "Kansas City Coaching" },
     { href: "/about/", label: "About" },
     { href: "/blog/", label: "Blog" },

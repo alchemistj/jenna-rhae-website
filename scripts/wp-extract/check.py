@@ -9,7 +9,7 @@ Without raw_html_dir the live pages are fetched with curl. Checks:
   2. blog.json lists every post, with its listing excerpt;
   3. every image path in every JSON exists on disk and is a real image;
   4. no JSON holds an http(s) image URL, no jennarhae.com host in hrefs,
-     no /trauma-coaching/ or /life-coach-columbia-mo/ hrefs;
+     no /life-coach-columbia-mo/ hrefs;
   5. embeds (quiz) are present where the live page has an iframe;
   6. metadata fields (title, metaDescription, dates) are present.
 Exit code 1 on any failure.
@@ -198,13 +198,13 @@ for slug in PAGES + POSTS:
             err(f"{slug}: http image URL in JSON: {s[:80]}")
         for m in re.finditer(r"\]\((https?://(?:www\.)?jennarhae\.com[^)]*)\)", s):
             err(f"{slug}: absolute internal link {m.group(1)}")
-        if re.search(r"\]\(/(trauma-coaching|life-coach-columbia-mo)/", s):
+        if re.search(r"\]\(/life-coach-columbia-mo/", s):
             err(f"{slug}: old internal slug link")
         if s.startswith("https://jennarhae.com") and not s.startswith("https://jennarhae.com/" + slug):
             err(f"{slug}: absolute internal URL {s}")
     for blk in d["sections"]:
         h = blk.get("href", "") if blk.get("type") == "cta" else ""
-        if re.match(r"https?://(www\.)?jennarhae\.com", h) or h.startswith("/trauma-coaching/") or h.startswith("/life-coach-columbia-mo/"):
+        if re.match(r"https?://(www\.)?jennarhae\.com", h) or h.startswith("/life-coach-columbia-mo/"):
             err(f"{slug}: bad cta href {h}")
 
 # testimonials file

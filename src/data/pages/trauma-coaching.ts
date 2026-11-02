@@ -1,8 +1,8 @@
-/** Copy for `/trauma-recovery-coaching/`. Word for word from jenna-rhae-web-spark/src/routes/trauma-recovery-coaching.tsx. */
+/** Copy for `/trauma-coaching/`. Word for word from jenna-rhae-web-spark/src/routes/trauma-recovery-coaching.tsx. */
 import type { PageData } from "../types";
 
 const page = {
-  path: "/trauma-recovery-coaching/",
+  path: "/trauma-coaching/",
   seo: {
     title: "Trauma Recovery Coach — Jenna White | JennaRhae",
     description:

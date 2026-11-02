@@ -156,7 +156,7 @@ const page = {
       heading: "Related Coaching Services",
       cards: [
         { title: "Christian Life Coach — Jenna White", linkLabel: "Visit Page →", href: "/" },
-        { title: "Trauma Recovery Coaching", linkLabel: "Visit Page →", href: "/trauma-recovery-coaching/" },
+        { title: "Trauma Recovery Coaching", linkLabel: "Visit Page →", href: "/trauma-coaching/" },
         { title: "Free Consultation Call", linkLabel: "Book Now →", href: "book" },
       ],
     },

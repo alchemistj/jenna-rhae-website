@@ -8,7 +8,6 @@ export interface Redirect {
 }
 
 const SOURCES: ReadonlyArray<readonly [string, string]> = [
-  ["/trauma-coaching", "/trauma-recovery-coaching/"],
   ["/life-coach-columbia-mo", "/christian-life-coach-kansas-city-mo/"],
   ["/feed", "/blog/"],
   ["/comments/feed", "/blog/"],
