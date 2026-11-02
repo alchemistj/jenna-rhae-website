@@ -1,0 +1,7 @@
+{
+  "checkedPages": ["/", "/trauma-coaching/", "/about/", "/life-coach-columbia-mo/"],
+  "checkedOn": "2026-11-02",
+  "result": "none found",
+  "note": "The Thrive Ovation plugin assets load on these pages, but no testimonial markup is rendered on any of them, there are no .thrive-display-testimonials / tvo elements or blockquotes, and the public REST route /wp-json/tcb/v1/testimonials does not exist. The only 'client' reference is a sentence of Jenna's own copy on /life-coach-columbia-mo/. Do not ship a testimonials section.",
+  "testimonials": []
+}
