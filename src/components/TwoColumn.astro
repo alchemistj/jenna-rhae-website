@@ -1,0 +1,47 @@
+---
+/**
+ * Two-column section: text in one column, a photo in the other (about 43% of the content width on desktop,
+ * same height as the text, object-fit: cover). On phones the columns stack at 4:3.
+ * Alternate `side` down the page. Body images are local, optimized by Astro and lazy-loaded.
+ */
+import { Image } from "astro:assets";
+import { getImageMeta, type ImageKey } from "../lib/images";
+
+interface Props {
+  image: ImageKey;
+  alt: string;
+  /** Which side the photo sits on at desktop width. */
+  side?: "right" | "left";
+  /** On phones, show the photo above the text instead of below. */
+  photoFirstOnMobile?: boolean;
+  class?: string;
+}
+const { image, alt, side = "right", photoFirstOnMobile = false, class: className } = Astro.props;
+const meta = getImageMeta(image);
+const width = Math.min(720, meta.width);
+const widths = [400, 720].filter((w) => w < meta.width);
+widths.push(meta.width <= 720 ? meta.width : 720);
+---
+
+<div
+  class:list={[
+    "two-col",
+    side === "left" && "photo-left",
+    photoFirstOnMobile && "mobile-photo-first",
+    className,
+  ]}
+>
+  <div><slot /></div>
+  <div class="two-col-photo">
+    <Image
+      src={meta}
+      alt={alt}
+      width={width}
+      widths={widths}
+      sizes="(min-width: 768px) 400px, 100vw"
+      format="webp"
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+</div>

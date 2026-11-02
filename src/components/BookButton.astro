@@ -1,0 +1,14 @@
+---
+/**
+ * Primary call to action. `href` comes from bookHref(hasBooking): "#book" on a page with the embed,
+ * "/contact/#book" elsewhere. Never an external link.
+ */
+interface Props {
+  label: string;
+  href: string;
+  class?: string;
+}
+const { label, href, class: className } = Astro.props;
+---
+
+<a href={href} class:list={["btn-accent", className]} data-book>{label}</a>

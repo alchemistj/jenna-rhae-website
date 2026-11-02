@@ -1,0 +1,23 @@
+---
+/**
+ * The one page template. Every built page is a typed data file in src/data/pages, registered in
+ * src/data/pages/index.ts and in the route registry. Home is the empty slug.
+ */
+import type { GetStaticPaths } from "astro";
+import { pages } from "../data/pages";
+import { isPublished } from "../lib/routeRegistry";
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+export const getStaticPaths = (() => {
+  return Object.values(pages)
+    .filter((page) => isPublished(page.path))
+    .map((page) => ({
+      params: { slug: page.path === "/" ? undefined : page.path.slice(1, -1) },
+      props: { page },
+    }));
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+---
+
+<BaseLayout page={page} />
