@@ -2,7 +2,7 @@
 /**
  * Generic deferred third-party iframe (Rule 10). The server HTML has no <iframe> and no iframe src:
  * the URL sits in data-src and in a <noscript> link. The script below creates the iframe on the first scroll,
- * wheel, touchstart, pointerdown or keydown, or when the box comes within 300px of the viewport,
+ * wheel, touchstart, pointerdown or keydown, or when 10% of the box is in the viewport,
  * whichever is first. The box reserves its height so nothing shifts when the frame loads.
  * Used by BookingEmbed (SpringboardCRM) and the free trauma test (LeadConnector quiz).
  */
@@ -66,7 +66,7 @@ const { src, title, noscriptLabel, height = 820, mobileHeight = 900, id } = Astr
                 }
               }
             },
-            { rootMargin: "300px 0px" },
+            { rootMargin: "0px", threshold: 0.1 },
           )
         : null;
     boxes.forEach((box) => observer?.observe(box));
