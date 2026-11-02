@@ -59,7 +59,7 @@ def live_html(slug):
 
 def corpus(d):
     """All text in a page JSON, markdown stripped, as one normalised string."""
-    parts = []
+    parts = [strip_md(d.get("h1") or "")]
 
     def rec(o):
         if isinstance(o, dict):
@@ -140,7 +140,9 @@ for slug in PAGES + POSTS:
         # skip containers nested in another checked element (e.g. p inside li)
         if el.name in ("p",) and el.find_parent(["li", "blockquote"]):
             continue
-        t = norm(el.get_text(" ", strip=False))
+        for br in el.find_all("br"):
+            br.replace_with(" ")
+        t = norm(el.get_text("", strip=False))
         t = re.sub(r"\s+([,.;:!?)])", r"\1", t)
         if not t:
             continue
@@ -168,7 +170,7 @@ for slug in PAGES + POSTS:
                 err(f"blog: post {p} missing from posts[]")
         for art in soup.select("article.post"):
             sec = art.select_one("section.tcb-post-content")
-            ex = norm(sec.get_text(" ")) if sec else ""
+            ex = norm(sec.get_text("")) if sec else ""
             ex = re.sub(r"\s+([,.;:!?)])", r"\1", ex)
             if ex and ex not in re.sub(r"\s+([,.;:!?)])", r"\1", text):
                 err(f"blog: listing excerpt not in JSON: {ex[:80]!r}")
