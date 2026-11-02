@@ -1,0 +1,22 @@
+---
+/**
+ * Full-width band with the content held at the shared width (--content-max).
+ * bg: cream (page color), gold (decorative band, dark text) or charcoal (dark band, light text).
+ */
+import type { Background } from "../data/types";
+
+interface Props {
+  bg?: Background;
+  id?: string;
+  class?: string;
+  /** Tighter vertical padding for short bands. */
+  compact?: boolean;
+}
+const { bg = "cream", id, class: className, compact = false } = Astro.props;
+---
+
+<section id={id} class:list={["w-full", `band-${bg}`, compact ? "py-12" : "py-16 md:py-24"]}>
+  <div class:list={["container-narrow", className]}>
+    <slot />
+  </div>
+</section>

@@ -1,0 +1,14 @@
+---
+/** Centered eyebrow + H2 used at the top of most bands. */
+interface Props {
+  eyebrow?: string;
+  heading: string;
+  class?: string;
+}
+const { eyebrow, heading, class: className = "mb-10" } = Astro.props;
+---
+
+<div class:list={["text-center", className]}>
+  {eyebrow && <div class="eyebrow mb-3">{eyebrow}</div>}
+  <h2>{heading}</h2>
+</div>

@@ -114,6 +114,10 @@ export interface FormCopy {
   howHeard: { label: string; placeholder: string; options: string[] };
   /** Label of the CustomFields entry sent to Central Forms. */
   howHeardFieldLabel: string;
+  /** Label of the SMS consent entry sent to Central Forms. */
+  smsFieldLabel: string;
+  /** Accessible label of the hidden honeypot input. */
+  honeypotLabel: string;
   smsConsent: { lead: string; links: { label: string; href: string }[] };
   submit: string;
   sending: string;

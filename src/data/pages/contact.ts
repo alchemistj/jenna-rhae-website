@@ -88,6 +88,8 @@ const page = {
       options: ["Google Search", "Instagram", "Referral", "Other"],
     },
     howHeardFieldLabel: "How did you find Jenna?",
+    smsFieldLabel: "SMS consent",
+    honeypotLabel: "Website",
     smsConsent: {
       lead: "I agree to receive text messages from JennaRhae at the phone number I provided. Message and data rates may apply. Reply STOP to opt out. Read our",
       links: [
