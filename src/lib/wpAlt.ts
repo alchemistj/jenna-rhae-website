@@ -9,7 +9,7 @@ export const WRITTEN_ALTS: Record<string, string> = {
   "src/assets/wp/facts-about-jenna.jpg":
     "Jenna White smiling in a car, with curly hair, a gold necklace, and long earrings",
   "src/assets/wp/christian-life-coach.jpg":
-    "Jenna White in a lace wedding gown and veil, holding a red and white bouquet beside her husband in a tan suit",
+    "Jenna White in a lace wedding gown and veil, holding a red and white bouquet beside a man in a tan suit",
   "src/assets/wp/jenna-barbosa-author.jpg":
     "Portrait of Jenna Barbosa smiling, with long dark hair, glasses, and a floral top",
   "src/assets/wp/angel-williams-author.jpg":
