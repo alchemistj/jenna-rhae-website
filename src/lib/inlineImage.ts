@@ -16,7 +16,7 @@ export interface InlineImage {
 }
 
 const HERO_WIDTH = 1280;
-const HERO_MAX_BYTES = 58_000;
+const HERO_MAX_BYTES = 56_000;
 const LOGO_MAX_BYTES = 4_000;
 
 const cache = new Map<string, Promise<InlineImage>>();
@@ -34,14 +34,14 @@ async function buildHero(file: string): Promise<InlineImage> {
 
   // Find the highest quality that fits the budget with a quick encode, then do the slow final encode.
   let chosen = 30;
-  for (const quality of [56, 52, 48, 44, 40, 36, 32, 28]) {
+  for (const quality of [80, 74, 68, 62, 56, 50, 44, 38, 32]) {
     const probe = await resized.clone().avif({ quality, effort: 3 }).toBuffer();
     if (probe.length <= HERO_MAX_BYTES) {
       chosen = quality;
       break;
     }
   }
-  const final = await resized.clone().avif({ quality: chosen, effort: 9 }).toBuffer();
+  const final = await resized.clone().avif({ quality: chosen, effort: 6 }).toBuffer();
   return {
     dataUri: `data:image/avif;base64,${final.toString("base64")}`,
     width,
