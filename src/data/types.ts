@@ -79,6 +79,36 @@ export interface ArticleItem {
   image?: ImageData;
 }
 
+/** One piece of WordPress body content, with inline markdown already rendered to HTML. */
+export type WpRun =
+  | { type: "p"; html: string }
+  | { type: "h2"; html: string }
+  | { type: "h3"; html: string }
+  | { type: "h4"; html: string }
+  | { type: "ul"; items: string[] }
+  | { type: "ol"; items: string[] }
+  | { type: "image"; image: ImageKey; alt: string }
+  | { type: "cta"; html: string; href: string; newTab?: boolean };
+
+export interface BlogListItem {
+  href: string;
+  title: string;
+  date: string;
+  excerptHtml: string;
+  readMore: string;
+  image: ImageKey;
+  alt: string;
+}
+
+/** BlogPosting fields. Dates are the WordPress ISO strings. */
+export interface ArticleMeta {
+  headline: string;
+  datePublished: string;
+  dateModified: string;
+  authorName: string;
+  image: ImageKey;
+}
+
 export type Block =
   | { type: "intro"; text: string }
   | { type: "plain"; text: string }
@@ -101,7 +131,15 @@ export type Block =
   | { type: "notice"; bg: Background; text: string }
   | { type: "booking" }
   | { type: "lead-form" }
-  | { type: "final-cta"; quote: string; ctaLabel: string };
+  | { type: "final-cta"; quote: string; ctaLabel: string }
+  | { type: "decor"; image: ImageKey; alt: string }
+  | { type: "wp"; runs: WpRun[] }
+  | { type: "wp-split"; image: ImageKey; alt: string; side: "right" | "left"; runs: WpRun[] }
+  | { type: "quiz"; title: string; noscriptLabel: string }
+  | { type: "blog-list"; posts: BlogListItem[] }
+  | { type: "post-meta"; date: string; readingTime: string; authorName: string; image: ImageKey; alt: string }
+  | { type: "author"; name: string; bioHtml: string; image: ImageKey; alt: string }
+  | { type: "closing-book" };
 
 export interface FormCopy {
   eyebrow: string;
@@ -150,4 +188,6 @@ export interface PageData {
   blocks: Block[];
   /** Form copy, only on pages with a lead-form block. */
   form?: FormCopy;
+  /** Set on blog posts. Adds BlogPosting / Article JSON-LD. */
+  article?: ArticleMeta;
 }

@@ -17,6 +17,11 @@ import BookButton from "./BookButton.astro";
 import BookingEmbed from "./BookingEmbed.astro";
 import LeadForm from "./LeadForm.astro";
 import Icon from "./Icon.astro";
+import WpRuns from "./WpRuns.astro";
+import WpFigure from "./WpFigure.astro";
+import DeferredIframe from "./DeferredIframe.astro";
+import { QUIZ_URL } from "../lib/site";
+import { bookLabel } from "../data/site";
 
 interface Props {
   page: PageData;
@@ -27,10 +32,12 @@ const { page, bookHref } = Astro.props;
 // Two-column photo sections alternate sides down the page, starting on the right.
 let photoSections = 0;
 const nextSide = () => (photoSections++ % 2 === 0 ? "right" : "left");
+const onlyPlain = page.h1 !== undefined && page.blocks.every((block) => block.type === "plain");
+let blogPhotos = 0;
 ---
 
 {
-  page.h1 && (
+  onlyPlain && (
     <Section>
       <div class="mx-auto max-w-2xl">
         <h1 class="mb-6">{page.h1}</h1>
@@ -41,7 +48,15 @@ const nextSide = () => (photoSections++ % 2 === 0 ? "right" : "left");
 }
 
 {
-  !page.h1 &&
+  page.h1 && !onlyPlain && (
+    <Section compact>
+      <h1>{page.h1}</h1>
+    </Section>
+  )
+}
+
+{
+  !onlyPlain &&
     page.blocks.map((block) => {
       switch (block.type) {
         case "intro":
@@ -283,6 +298,91 @@ const nextSide = () => (photoSections++ % 2 === 0 ? "right" : "left");
 
         case "final-cta":
           return <FinalCta quote={block.quote} ctaLabel={block.ctaLabel} bookHref={bookHref} />;
+
+        case "decor":
+          return (
+            <Section compact>
+              <WpFigure image={block.image} alt={block.alt} kind="decor" />
+            </Section>
+          );
+
+        case "wp":
+          return (
+            <Section>
+              <WpRuns runs={block.runs} />
+            </Section>
+          );
+
+        case "wp-split":
+          return (
+            <Section>
+              <TwoColumn image={block.image} alt={block.alt} side={block.side}>
+                <WpRuns runs={block.runs} />
+              </TwoColumn>
+            </Section>
+          );
+
+        case "quiz":
+          return (
+            <Section id="trauma-quiz">
+              <DeferredIframe src={QUIZ_URL} title={block.title} noscriptLabel={block.noscriptLabel} />
+            </Section>
+          );
+
+        case "blog-list":
+          return (
+            <Section>
+              <div class="space-y-14">
+                {block.posts.map((post) => {
+                  const side = blogPhotos++ % 2 === 0 ? "right" : "left";
+                  return (
+                    <TwoColumn image={post.image} alt={post.alt} side={side}>
+                      <p class="mb-3 text-sm">{post.date}</p>
+                      <h2 class="mb-4">
+                        <a href={post.href}>{post.title}</a>
+                      </h2>
+                      <p class="soft mb-4" set:html={post.excerptHtml} />
+                      <a class="link-accent" href={post.href}>
+                        {post.readMore}
+                      </a>
+                    </TwoColumn>
+                  );
+                })}
+              </div>
+            </Section>
+          );
+
+        case "post-meta":
+          return (
+            <Section compact>
+              <p class="soft mb-1">{block.date}</p>
+              <p class="soft mb-2">{block.readingTime}</p>
+              <p class="mb-6 font-bold">{block.authorName}</p>
+              <WpFigure image={block.image} alt={block.alt} kind="feature" />
+            </Section>
+          );
+
+        case "author":
+          return (
+            <Section compact>
+              <div class="author-box">
+                <WpFigure image={block.image} alt={block.alt} kind="author" />
+                <div>
+                  <p class="mb-2 font-display text-xl font-bold">{block.name}</p>
+                  <p class="soft" set:html={block.bioHtml} />
+                </div>
+              </div>
+            </Section>
+          );
+
+        case "closing-book":
+          return (
+            <Section bg="charcoal">
+              <div class="text-center">
+                <BookButton label={bookLabel} href={bookHref} />
+              </div>
+            </Section>
+          );
 
         default:
           return null;

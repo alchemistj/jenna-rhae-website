@@ -40,10 +40,7 @@ describe("copy appears word for word in the built HTML", () => {
       footer: site.footer,
       booking: site.booking,
     });
-    // Nav labels for pending routes (About, Blog) are intentionally not rendered.
-    const pendingLabels = new Set(["About", "Blog"]);
-    const filtered = strings.filter((s) => !(s.key === "label" && pendingLabels.has(s.value)));
-    expect(check(filtered, html)).toEqual([]);
+    expect(check(strings, html)).toEqual([]);
   });
 
   it("decodes entities the way browsers do (guards the test itself)", () => {

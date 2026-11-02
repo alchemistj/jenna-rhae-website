@@ -53,10 +53,9 @@ describe("vercel.json redirects", () => {
     }
   });
 
-  it("agrees with the registry: /blog/ is where the feeds go, so the registry must know it", () => {
-    // The destination exists in the registry but is pending until the blog is built; note it here so the
-    // blog helper removes `pending` before launch (a redirect to a 404 would lose the feed traffic).
+  it("sends /feed and /comments/feed to the published blog", () => {
     expect(getRoute("/blog/")).toBeDefined();
+    expect(isPublished("/blog/")).toBe(true);
     expect(isPublished("/trauma-recovery-coaching/")).toBe(true);
     expect(isPublished("/christian-life-coach-kansas-city-mo/")).toBe(true);
   });

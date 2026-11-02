@@ -17,6 +17,13 @@ export interface JsonLdInput {
   logoUrl: string;
   breadcrumbLabel?: string;
   faq?: FaqItem[];
+  article?: {
+    headline: string;
+    datePublished: string;
+    dateModified: string;
+    authorName: string;
+    imageUrl?: string;
+  };
 }
 
 /**
@@ -56,6 +63,19 @@ export function buildJsonLd(input: JsonLdInput): Record<string, unknown> {
         { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
         { "@type": "ListItem", position: 2, name: input.breadcrumbLabel ?? input.title, item: canonicalUrl(input.path) },
       ],
+    });
+  }
+
+  if (input.article) {
+    graph.push({
+      "@type": ["BlogPosting", "Article"],
+      headline: input.article.headline,
+      datePublished: input.article.datePublished,
+      dateModified: input.article.dateModified,
+      author: { "@type": "Person", name: input.article.authorName },
+      ...(input.article.imageUrl ? { image: input.article.imageUrl } : {}),
+      mainEntityOfPage: canonicalUrl(input.path),
+      url: canonicalUrl(input.path),
     });
   }
 

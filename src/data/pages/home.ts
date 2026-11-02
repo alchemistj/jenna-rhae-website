@@ -63,10 +63,12 @@ const page = {
         {
           title: "Tenacious Grace — Emotional Eating Healing",
           body: "Heal the relationship between food, emotion, and body — without shame and without performance.",
+          href: "/tenacious-grace/",
         },
         {
           title: "Free Trauma Clarity Test",
           body: "A short, honest self-reflection to help you see what your nervous system has been quietly carrying.",
+          href: "/free-trauma-test/",
         },
         {
           title: "Free Consultation Call",

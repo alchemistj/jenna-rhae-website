@@ -6,7 +6,7 @@ import { buildLlms, buildRobots, buildSitemap } from "../src/lib/seoFiles";
 import { isPublished, pendingRoutes, publishedRoutes, routes } from "../src/lib/routeRegistry";
 import { DIST, allPageHtml, pageFile, walk } from "./helpers";
 
-const PENDING = [
+const WORDPRESS = [
   "/about/",
   "/blog/",
   "/free-trauma-test/",
@@ -31,9 +31,9 @@ describe("route registry", () => {
     for (const p of paths) expect(p).toMatch(/^\/([a-z0-9-]+\/)*$/);
   });
 
-  it("registers the WordPress pages and the 7 posts as pending", () => {
-    expect(pendingRoutes.map((r) => r.path).sort()).toEqual([...PENDING].sort());
-    for (const p of PENDING) expect(isPublished(p)).toBe(false);
+  it("publishes the WordPress pages and the 7 posts", () => {
+    expect(pendingRoutes).toEqual([]);
+    for (const p of WORDPRESS) expect(isPublished(p), p).toBe(true);
   });
 
   it("has page data for every published route and none for pending ones", () => {
@@ -42,7 +42,7 @@ describe("route registry", () => {
 
   it("builds a page for every published route and none for pending routes", () => {
     for (const r of publishedRoutes) expect(existsSync(pageFile(r.path)), r.path).toBe(true);
-    for (const p of PENDING) expect(existsSync(pageFile(p)), p).toBe(false);
+    for (const r of pendingRoutes) expect(existsSync(pageFile(r.path)), r.path).toBe(false);
     const built = walk(DIST)
       .filter((f) => f.endsWith("index.html"))
       .map((f) => path.relative(DIST, path.dirname(f)).split(path.sep).join("/"))
@@ -59,7 +59,7 @@ describe("sitemap.xml, robots.txt and llms.txt agree with the registry", () => {
 
   it("sitemap lists exactly the published routes", () => {
     expect(locs(sitemap).sort()).toEqual(expected);
-    for (const p of PENDING) expect(sitemap).not.toContain(p);
+    for (const p of WORDPRESS) expect(sitemap).toContain(`https://jennarhae.com${p}`);
     expect(sitemap).toBe(buildSitemap());
   });
 
@@ -72,7 +72,7 @@ describe("sitemap.xml, robots.txt and llms.txt agree with the registry", () => {
   it("llms.txt lists exactly the published routes", () => {
     const urls = Array.from(llms.matchAll(/\]\((https:\/\/jennarhae\.com[^)]*)\)/g), (m) => m[1]!);
     expect(urls.sort()).toEqual(expected);
-    for (const p of PENDING) expect(llms).not.toContain(p);
+    for (const p of WORDPRESS) expect(llms).toContain(`https://jennarhae.com${p}`);
     const descriptions = Object.fromEntries(Object.values(pages).map((p) => [p.path, p.seo.description]));
     expect(llms).toBe(buildLlms(descriptions));
   });
@@ -99,10 +99,10 @@ describe("internal links", () => {
     }
   });
 
-  it("render nav links only for published routes", () => {
+  it("renders About and Blog in the nav once those routes are published", () => {
     for (const { html } of allPageHtml()) {
-      expect(html).not.toContain('href="/about/"');
-      expect(html).not.toContain('href="/blog/"');
+      expect(html).toContain('href="/about/"');
+      expect(html).toContain('href="/blog/"');
     }
   });
 });

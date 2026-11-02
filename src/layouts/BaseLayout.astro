@@ -43,6 +43,9 @@ const absolute = async (key: keyof typeof images) => {
 const ogImage = await absolute(seo.ogImage ?? "hero-home");
 const logoImage = await getImage({ src: images.logo, format: "png" });
 const faq = page.blocks.flatMap((block) => (block.type === "faq" ? block.items : []));
+const articleImage = page.article
+  ? `${SITE_URL}${(await getImage({ src: images[page.article.image], width: 1200, height: 630, format: "jpeg" })).src}`
+  : undefined;
 const jsonLd = buildJsonLd({
   path: page.path,
   title: seo.title,
@@ -50,6 +53,15 @@ const jsonLd = buildJsonLd({
   logoUrl: `${SITE_URL}${logoImage.src}`,
   breadcrumbLabel: route.label,
   faq,
+  article: page.article
+    ? {
+        headline: page.article.headline,
+        datePublished: page.article.datePublished,
+        dateModified: page.article.dateModified,
+        authorName: page.article.authorName,
+        imageUrl: articleImage,
+      }
+    : undefined,
 });
 const canonical = canonicalUrl(page.path);
 ---

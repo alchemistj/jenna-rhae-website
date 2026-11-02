@@ -445,4 +445,105 @@
   [id] {
     scroll-margin-top: calc(var(--header-h) + 16px);
   }
+
+  /* WordPress body. Large photos sit beside the text on desktop; small icons stay small. */
+  .wp-prose {
+    display: flow-root;
+  }
+
+  .wp-prose h2,
+  .wp-prose h3,
+  .wp-prose h4 {
+    margin-top: 1.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .wp-prose h2:first-child,
+  .wp-prose h3:first-child,
+  .wp-prose h4:first-child {
+    margin-top: 0;
+  }
+
+  .wp-prose p {
+    margin-bottom: 1rem;
+  }
+
+  .wp-prose ul,
+  .wp-prose ol {
+    margin: 0 0 1rem 1.25rem;
+  }
+
+  .wp-prose ul {
+    list-style: disc;
+  }
+
+  .wp-prose ol {
+    list-style: decimal;
+  }
+
+  .wp-prose li {
+    margin: 0.35rem 0;
+  }
+
+  .wp-prose a.link-accent {
+    text-decoration: underline;
+  }
+
+  .wp-figure {
+    margin: 1.25rem 0;
+  }
+
+  .wp-figure img {
+    height: auto;
+  }
+
+  .wp-decor {
+    width: 70px;
+    margin: 0;
+  }
+
+  .wp-feature {
+    max-width: min(100%, 28rem);
+    margin: 1.5rem 0 0;
+  }
+
+  .wp-cta {
+    margin-top: 1.5rem;
+  }
+
+  .author-box {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+  }
+
+  .author-box .wp-author {
+    flex: none;
+    width: 96px;
+    margin: 0;
+  }
+
+  @media (min-width: 768px) {
+    .wp-figure.is-large.side-right {
+      float: right;
+      width: 45%;
+      margin: 0.25rem 0 1rem 1.25rem;
+    }
+
+    .wp-figure.is-large.side-left {
+      float: left;
+      width: 45%;
+      margin: 0.25rem 1.25rem 1rem 0;
+    }
+
+    .wp-figure.is-small {
+      width: max-content;
+      max-width: 100%;
+    }
+
+    .wp-figure.is-small img {
+      width: auto;
+      max-width: 160px;
+    }
+  }
 }

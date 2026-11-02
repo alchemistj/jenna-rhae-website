@@ -49,26 +49,24 @@ export const routes: readonly RouteEntry[] = [
   { path: "/terms/", label: "Terms of Service", kind: "legal", changefreq: "yearly", priority: 0.2 },
   { path: "/text-messaging-terms/", label: "Text Messaging Terms", kind: "legal", changefreq: "yearly", priority: 0.2 },
 
-  // WordPress pages rebuilt at the same URLs by another helper. Remove `pending` when built.
-  { path: "/about/", label: "About", kind: "page", pending: true, changefreq: "monthly", priority: 0.7 },
-  { path: "/blog/", label: "Blog", kind: "page", pending: true, changefreq: "weekly", priority: 0.7 },
+  { path: "/about/", label: "About", kind: "page", changefreq: "monthly", priority: 0.7 },
+  { path: "/blog/", label: "Blog", kind: "page", changefreq: "weekly", priority: 0.7 },
   {
     path: "/free-trauma-test/",
     label: "Free Trauma Test",
     kind: "page",
-    pending: true,
     hasBooking: true,
     changefreq: "monthly",
     priority: 0.7,
   },
-  { path: "/tenacious-grace/", label: "Tenacious Grace", kind: "page", pending: true, changefreq: "monthly", priority: 0.7 },
-  { path: "/what-does-a-trauma-coach-do/", label: "What Does a Trauma Coach Do", kind: "post", pending: true, changefreq: "yearly", priority: 0.6 },
-  { path: "/what-causes-complex-trauma/", label: "What Causes Complex Trauma", kind: "post", pending: true, changefreq: "yearly", priority: 0.6 },
-  { path: "/the-gift-hidden-in-the-ask/", label: "The Gift Hidden in the Ask", kind: "post", pending: true, changefreq: "yearly", priority: 0.6 },
-  { path: "/is-grief-trauma/", label: "Is Grief Trauma", kind: "post", pending: true, changefreq: "yearly", priority: 0.6 },
-  { path: "/what-to-do-after-trauma/", label: "What to Do After Trauma", kind: "post", pending: true, changefreq: "yearly", priority: 0.6 },
-  { path: "/trauma-nightmares/", label: "Trauma Nightmares", kind: "post", pending: true, changefreq: "yearly", priority: 0.6 },
-  { path: "/how-to-trust-after-trauma/", label: "How to Trust After Trauma", kind: "post", pending: true, changefreq: "yearly", priority: 0.6 },
+  { path: "/tenacious-grace/", label: "Tenacious Grace", kind: "page", changefreq: "monthly", priority: 0.7 },
+  { path: "/what-does-a-trauma-coach-do/", label: "What Does a Trauma Coach Do", kind: "post", changefreq: "yearly", priority: 0.6 },
+  { path: "/what-causes-complex-trauma/", label: "What Causes Complex Trauma", kind: "post", changefreq: "yearly", priority: 0.6 },
+  { path: "/the-gift-hidden-in-the-ask/", label: "The Gift Hidden in the Ask", kind: "post", changefreq: "yearly", priority: 0.6 },
+  { path: "/is-grief-trauma/", label: "Is Grief Trauma", kind: "post", changefreq: "yearly", priority: 0.6 },
+  { path: "/what-to-do-after-trauma/", label: "What to Do After Trauma", kind: "post", changefreq: "yearly", priority: 0.6 },
+  { path: "/trauma-nightmares/", label: "Trauma Nightmares", kind: "post", changefreq: "yearly", priority: 0.6 },
+  { path: "/how-to-trust-after-trauma/", label: "How to Trust After Trauma", kind: "post", changefreq: "yearly", priority: 0.6 },
 ];
 
 export const publishedRoutes: readonly RouteEntry[] = routes.filter((r) => !r.pending);
