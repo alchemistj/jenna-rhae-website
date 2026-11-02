@@ -55,7 +55,7 @@ async function buildLogo(file: string, displayWidth: number): Promise<InlineImag
   const resized = sharp(source).resize({ width: displayWidth * 2, withoutEnlargement: true });
   let out: Buffer = Buffer.alloc(0);
   let info = { width: 0, height: 0 };
-  for (const quality of [82, 70, 60, 50, 40]) {
+  for (const quality of [70, 60, 50, 40]) {
     const res = await resized.clone().webp({ quality, effort: 6 }).toBuffer({ resolveWithObject: true });
     out = res.data;
     info = res.info;

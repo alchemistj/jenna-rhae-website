@@ -86,7 +86,7 @@ describe("images and hosts", () => {
   it("references third-party embeds only through data-src and the noscript link", () => {
     const home = read(path.join(DIST, "index.html"));
     expect(home).toContain('data-src="https://link.springboardcrm.com/widget/booking/5JgMZbYOgzpSpNXbNZCA"');
-    expect(home).toMatch(/<noscript><p[^>]*><a [^>]*href="https:\/\/link\.springboardcrm\.com\/widget\/booking\/5JgMZbYOgzpSpNXbNZCA"/);
+    expect(home).toMatch(/<noscript>\s*<p[^>]*><a [^>]*href="https:\/\/link\.springboardcrm\.com\/widget\/booking\/5JgMZbYOgzpSpNXbNZCA"/);
     expect(home).not.toMatch(/<iframe/i);
   });
 });

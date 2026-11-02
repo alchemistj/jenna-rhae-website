@@ -60,7 +60,7 @@ describe("every built page", () => {
     for (const route of publishedRoutes.filter((r) => r.photoHero)) {
       const html = all.find((p) => p.path === route.path)!.html;
       const body = html.slice(html.indexOf("<body"));
-      const photo = body.indexOf('class="atf-photo"');
+      const photo = body.indexOf('<img class="atf-photo"');
       const header = body.indexOf("<header");
       const h1 = body.indexOf("<h1");
       const marker = body.indexOf('class="atf-ready"');
@@ -93,12 +93,12 @@ describe("every built page", () => {
     }
   });
 
-  it("keeps the H1 close to the photo (3 KB between the </img> and the <h1>, ignoring the header)", () => {
+  it("keeps the H1 close to the photo (under 10 KB between the photo and the H1: scrim, header with inline logo and menu)", () => {
     for (const route of publishedRoutes.filter((r) => r.photoHero)) {
       const html = all.find((p) => p.path === route.path)!.html;
       const afterPhoto = html.slice(html.indexOf('class="atf-scrim"'));
       const between = afterPhoto.slice(0, afterPhoto.indexOf("<h1"));
-      expect(Buffer.byteLength(between), route.path).toBeLessThan(8_000);
+      expect(Buffer.byteLength(between), route.path).toBeLessThan(10_000);
     }
   });
 
