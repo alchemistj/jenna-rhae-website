@@ -65,6 +65,8 @@ def rewrite_href(href, slug=None):
         if p.fragment:
             out += "#" + p.fragment
         href = out
+    # WordPress "read more" anchors (#more-123) point at nothing on the new site
+    href = re.sub(r"#more-\d+$", "", href)
     if href != orig and slug:
         link_log.append((slug, orig, href))
     return href
@@ -151,7 +153,6 @@ def image_block(img, slug, **extra):
         blk["title"] = img.get("title")
     if w and h and str(w).isdigit() and str(h).isdigit():
         blk["width"], blk["height"] = int(w), int(h)
-    blk["originalUrl"] = full
     blk.update(extra)
     if not blk["alt"]:
         skipped_log.append((slug, f"MISSING ALT on image {name}"))
@@ -397,6 +398,11 @@ if __name__ == "__main__":
     for s in POSTS:
         pd = POST_DATA[s][0]
         print("date", s, pd["publishedDate"], rest[s]["date"], pd["modifiedDate"], rest[s]["modified"])
+
+    # image manifest (kept out of the page JSON so no JSON holds an http image URL)
+    with open(os.path.join(ROOT, "scripts", "wp-extract", "images-manifest.json"), "w") as f:
+        json.dump({k: image_jobs[k] for k in sorted(image_jobs)}, f, indent=2)
+        f.write("\n")
 
     # downloads
     for name, url in sorted(image_jobs.items()):

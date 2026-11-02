@@ -7,3 +7,4 @@ for s in about free-trauma-test tenacious-grace blog what-does-a-trauma-coach-do
 done
 curl -sS -L -o "$OUT/home.html" "https://jennarhae.com/"
 ls -la "$OUT"
+curl -sS -L -o "$OUT/posts.json" "https://jennarhae.com/wp-json/wp/v2/posts?per_page=100&_fields=slug,date,modified,excerpt,title"
