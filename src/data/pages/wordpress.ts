@@ -18,7 +18,6 @@ import whatToDoJson from "../wp/what-to-do-after-trauma.json";
 import nightmaresJson from "../wp/trauma-nightmares.json";
 import griefJson from "../wp/is-grief-trauma.json";
 import complexJson from "../wp/what-causes-complex-trauma.json";
-import giftJson from "../wp/the-gift-hidden-in-the-ask.json";
 import coachJson from "../wp/what-does-a-trauma-coach-do.json";
 
 interface WpImage {
@@ -72,12 +71,10 @@ const SRC_TO_KEY = {
   "src/assets/wp/jennarhae-trauma-coach.jpg": "wp-jennarhae-trauma-coach",
   "src/assets/wp/facts-about-jenna.jpg": "wp-facts-about-jenna",
   "src/assets/wp/christian-life-coach.jpg": "wp-christian-life-coach",
-  "src/assets/wp/jenna-barbosa-author.jpg": "wp-jenna-barbosa-author",
-  "src/assets/wp/angel-williams-author.jpg": "wp-angel-williams-author",
+  "src/assets/wp/jenna-white-author.jpg": "wp-jenna-white-author",
   "src/assets/wp/what-causes-complex-trauma.jpg": "wp-what-causes-complex-trauma",
   "src/assets/wp/tenacious-grace.avif": "wp-tenacious-grace",
   "src/assets/wp/trauma-coaching.jpg": "wp-trauma-coaching",
-  "src/assets/wp/the-gift-hidden-in-the-ask.jpg": "wp-the-gift-hidden-in-the-ask",
   "src/assets/wp/jenna-quotes.png": "wp-jenna-quotes",
   "src/assets/wp/trauma-nightmares.png": "wp-trauma-nightmares",
   "src/assets/wp/how-to-trust-after-trauma.jpg": "wp-how-to-trust-after-trauma",
@@ -185,7 +182,7 @@ function buildQuiz(doc: WpDoc): PageData {
 
 function buildBlog(doc: WpDoc): PageData {
   const posts = doc.posts ?? [];
-  if (posts.length !== 7 || !doc.h1) throw new Error("blog.json must list all 7 posts");
+  if (posts.length !== 6 || !doc.h1) throw new Error("blog.json must list all 6 posts");
   return {
     path: doc.url,
     seo: seo(doc),
@@ -249,7 +246,7 @@ const about = aboutJson as WpDoc;
 const blog = blogJson as WpDoc;
 const freeTraumaTest = freeTraumaTestJson as WpDoc;
 const tenaciousGrace = tenaciousGraceJson as WpDoc;
-const posts = [howToTrustJson, whatToDoJson, nightmaresJson, griefJson, complexJson, giftJson, coachJson] as WpDoc[];
+const posts = [howToTrustJson, whatToDoJson, nightmaresJson, griefJson, complexJson, coachJson] as WpDoc[];
 
 export const wordpressPages: PageData[] = [
   buildAbout(about),

@@ -47,6 +47,10 @@ const page = {
           linkLabel: "Learn More →",
         },
         {
+          title: "From Survival to Stability Group Coaching Cohort",
+          body: "Twelve week group coaching online and in-person in Kansas City for women ready to understand their nervous systems and find new ways of healing and hope.",
+        },
+        {
           title: "Christian Life Coaching in Kansas City, MO",
           body: "In-person coaching for Kansas City women ready to leave survival mode behind — over coffee, at your pace.",
           href: "/christian-life-coach-kansas-city-mo/",
@@ -115,22 +119,6 @@ const page = {
           image: "coach-jenna",
           alt: "Jenna White, MA — Emotional Freedom Life Coach and Certified Biblical Counselor",
           cta: "About Jenna",
-          href: "/about/",
-        },
-        {
-          name: "Alisha Glasgow",
-          role: "Life Coach — Fluent in ASL, Deaf Culture Specialist",
-          image: "coach-alisha",
-          alt: "Alisha Glasgow — Life Coach, Fluent in ASL",
-          cta: "About Alisha",
-          href: "/about/",
-        },
-        {
-          name: "Angel Williams",
-          role: "Life Coach — SAHM, Foster Care & Faith-Based Coaching",
-          image: "coach-angel",
-          alt: "Angel Williams — Life Coach, Foster Care Coach, Faith-Based Coach",
-          cta: "About Angel",
           href: "/about/",
         },
       ],

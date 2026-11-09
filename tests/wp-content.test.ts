@@ -125,12 +125,12 @@ describe("WordPress copy in the built pages", () => {
     });
   }
 
-  it("lists all 7 posts on /blog/ and in the sitemap, including the one the live page hides", () => {
+  it("lists all 6 posts on /blog/ and in the sitemap, including the one the live page hides", () => {
     const blog = load("blog.json");
     const html = readPage("/blog/");
     const text = textOf(html);
     const sitemap = readFileSync(path.join(ROOT, "dist", "sitemap.xml"), "utf8");
-    expect(blog.posts).toHaveLength(7);
+    expect(blog.posts).toHaveLength(6);
     expect(text).toContain("Blog");
     expect(blog.posts?.some((post) => post.onLiveListing === false)).toBe(true);
     for (const post of blog.posts ?? []) {

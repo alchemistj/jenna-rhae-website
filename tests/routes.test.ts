@@ -13,7 +13,6 @@ const WORDPRESS = [
   "/tenacious-grace/",
   "/what-does-a-trauma-coach-do/",
   "/what-causes-complex-trauma/",
-  "/the-gift-hidden-in-the-ask/",
   "/is-grief-trauma/",
   "/what-to-do-after-trauma/",
   "/trauma-nightmares/",
@@ -31,7 +30,7 @@ describe("route registry", () => {
     for (const p of paths) expect(p).toMatch(/^\/([a-z0-9-]+\/)*$/);
   });
 
-  it("publishes the WordPress pages and the 7 posts", () => {
+  it("publishes the WordPress pages and the 6 posts", () => {
     expect(pendingRoutes).toEqual([]);
     for (const p of WORDPRESS) expect(isPublished(p), p).toBe(true);
   });

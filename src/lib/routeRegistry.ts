@@ -62,7 +62,6 @@ export const routes: readonly RouteEntry[] = [
   { path: "/tenacious-grace/", label: "Tenacious Grace", kind: "page", changefreq: "monthly", priority: 0.7 },
   { path: "/what-does-a-trauma-coach-do/", label: "What Does a Trauma Coach Do", kind: "post", changefreq: "yearly", priority: 0.6 },
   { path: "/what-causes-complex-trauma/", label: "What Causes Complex Trauma", kind: "post", changefreq: "yearly", priority: 0.6 },
-  { path: "/the-gift-hidden-in-the-ask/", label: "The Gift Hidden in the Ask", kind: "post", changefreq: "yearly", priority: 0.6 },
   { path: "/is-grief-trauma/", label: "Is Grief Trauma", kind: "post", changefreq: "yearly", priority: 0.6 },
   { path: "/what-to-do-after-trauma/", label: "What to Do After Trauma", kind: "post", changefreq: "yearly", priority: 0.6 },
   { path: "/trauma-nightmares/", label: "Trauma Nightmares", kind: "post", changefreq: "yearly", priority: 0.6 },

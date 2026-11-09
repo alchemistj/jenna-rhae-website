@@ -31,10 +31,17 @@ describe("vercel.json redirects", () => {
     const map = new Map(pathRedirects.map((r) => [r.source, r.destination]));
     expect(map.get("/life-coach-columbia-mo")).toBe("/christian-life-coach-kansas-city-mo/");
     expect(map.get("/life-coach-columbia-mo/")).toBe("/christian-life-coach-kansas-city-mo/");
-    for (const source of ["/feed", "/feed/", "/comments/feed", "/comments/feed/"]) {
+    for (const source of [
+      "/feed",
+      "/feed/",
+      "/comments/feed",
+      "/comments/feed/",
+      "/the-gift-hidden-in-the-ask",
+      "/the-gift-hidden-in-the-ask/",
+    ]) {
       expect(map.get(source), source).toBe("/blog/");
     }
-    expect(pathRedirects.length).toBe(6);
+    expect(pathRedirects.length).toBe(8);
   });
 
   it("sends www.jennarhae.com to the apex in one hop, first in the list", () => {

@@ -2,7 +2,7 @@
  * Copy for `/contact/`. Word for word from jenna-rhae-web-spark/src/routes/contact.tsx.
  * The mockup's "Form functionality added after approval" line is a build note and is not shipped.
  * The `form` messages (success, failure, no-JS, SMS consent) are not in the mockup. They are written to the
- * brief (no phone, "email info@jennarhae.com or book a call") and the SMS consent text needs human or legal review.
+ * brief (no phone, "email hello@jennarhae.com or book a call") and the SMS consent text needs human or legal review.
  */
 import type { PageData } from "../types";
 
@@ -27,7 +27,7 @@ const page = {
     subtitle: "Just an honest talk about where you are and whether coaching together makes sense.",
     ctaLabel: "Book a Free Consultation Call",
     meta: [
-      { icon: "mail", text: "info@jennarhae.com", mailto: true },
+      { icon: "mail", text: "hello@jennarhae.com", mailto: true },
       { icon: "map-pin", text: "In-Person Available in Kansas City, MO" },
       { icon: "monitor", text: "Online — Available Nationwide" },
     ],
