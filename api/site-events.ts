@@ -2,7 +2,7 @@ import {
   forwardMeasurementCollect,
   measurementCollectHealth,
   measurementHeaderValue,
-} from "../server/lib/forwardMeasurementCollect.ts";
+} from "../server/lib/forwardMeasurementCollect.js";
 
 /**
  * Same-origin journey-event proxy. The browser posts here. This function
