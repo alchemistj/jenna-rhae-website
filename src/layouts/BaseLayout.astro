@@ -115,5 +115,9 @@ const canonical = canonicalUrl(page.path);
       import { scheduleGa } from "../lib/analytics";
       scheduleGa();
     </script>
+    <script>
+      import { scheduleJourney } from "../lib/measurement/schedule";
+      scheduleJourney();
+    </script>
   </body>
 </html>

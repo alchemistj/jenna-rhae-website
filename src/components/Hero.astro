@@ -23,7 +23,7 @@ const { hero, bookHref } = Astro.props;
         <p class="mb-2 font-bold">{hero.subtitleBold}</p>
         <p>{hero.subtitle}</p>
       </div>
-      <BookButton label={hero.ctaLabel} href={bookHref} class="text-base" />
+      <BookButton label={hero.ctaLabel} href={bookHref} location="hero" class="text-base" />
       {
         hero.meta && (
           <ul class="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm" style="color: rgb(250 247 244 / 0.95)">

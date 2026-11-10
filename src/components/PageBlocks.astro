@@ -8,6 +8,7 @@ import { Image } from "astro:assets";
 import type { PageData } from "../data/types";
 import { getImageMeta } from "../lib/images";
 import { isPublished } from "../lib/routeRegistry";
+import { isContactHref } from "../lib/measurement/contactHref";
 import Section from "./Section.astro";
 import SectionHeader from "./SectionHeader.astro";
 import TwoColumn from "./TwoColumn.astro";
@@ -96,7 +97,7 @@ let blogPhotos = 0;
                     </>
                   );
                   return linked ? (
-                    <a href={card.href} class="card h-full">
+                    <a href={card.href} class="card h-full" data-cta-location={isContactHref(card.href) ? "main" : undefined}>
                       {inner}
                     </a>
                   ) : (
@@ -228,7 +229,7 @@ let blogPhotos = 0;
                 <Faq items={block.items} />
                 {block.ctaLabel && (
                   <div class="mt-10 text-center">
-                    <BookButton label={block.ctaLabel} href={bookHref} />
+                    <BookButton label={block.ctaLabel} href={bookHref} location="main" />
                   </div>
                 )}
               </div>
@@ -265,6 +266,7 @@ let blogPhotos = 0;
                 {block.cards.map((card) => {
                   const href = card.href === "book" ? bookHref : card.href;
                   const linked = card.href === "book" || isPublished(card.href);
+                  const ctaLocation = isContactHref(href) ? "main" : undefined;
                   const inner = (
                     <>
                       <h3 class="mb-2 font-display text-xl font-bold">{card.title}</h3>
@@ -272,7 +274,7 @@ let blogPhotos = 0;
                     </>
                   );
                   return linked ? (
-                    <a href={href} class="card">
+                    <a href={href} class="card" data-cta-location={ctaLocation}>
                       {inner}
                     </a>
                   ) : (
@@ -379,7 +381,7 @@ let blogPhotos = 0;
           return (
             <Section bg="charcoal">
               <div class="text-center">
-                <BookButton label={bookLabel} href={bookHref} />
+                <BookButton label={bookLabel} href={bookHref} location="cta_band" />
               </div>
             </Section>
           );

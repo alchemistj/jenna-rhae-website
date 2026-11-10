@@ -3,6 +3,9 @@
  * The browser posts straight to https://forms.fluidframemarketing.com/api/lead, only from a production host.
  * One clientSubmissionId per logical inquiry, reused on every retry, replaced after success or a 400.
  */
+import { attributionSnapshotForLead } from "./attribution/storage";
+import { buildFormsLeadAttribution, type FormsLeadAttribution } from "./leads/formsAttribution";
+import { pathOnly } from "./measurement/contract";
 import { FORMS } from "./site";
 
 export const REQUEST_TIMEOUT_MS = 45_000;
@@ -39,6 +42,8 @@ export interface LeadEnv {
   fetch: typeof fetch;
   now: () => number;
   uuid: () => string;
+  /** document.cookie when the caller has it. Omit to read document.cookie in the browser. */
+  cookie?: string;
 }
 
 export type LeadResult =
@@ -63,6 +68,7 @@ export interface LeadBody {
   referrer: string | null;
   utm: { source: string; medium: string; campaign: string; term: string; content: string };
   customFields: Record<string, { label: string; value: string; type: "text" }>;
+  attribution: FormsLeadAttribution;
 }
 
 export function isProductionHost(hostname: string): boolean {
@@ -73,7 +79,7 @@ export function buildLeadBody(
   fields: LeadFields,
   attemptId: string,
   startedAt: number,
-  env: Pick<LeadEnv, "href" | "referrer" | "search" | "now">,
+  env: Pick<LeadEnv, "href" | "referrer" | "search" | "now" | "cookie">,
   labels: LeadLabels = DEFAULT_LABELS,
 ): LeadBody {
   const t = (v: string) => v.trim();
@@ -104,6 +110,12 @@ export function buildLeadBody(
       content: q.get("utm_content") ?? "",
     },
     customFields,
+    attribution: buildFormsLeadAttribution(
+      FORMS.siteKey,
+      attributionSnapshotForLead(env),
+      pathOnly(env.href) || "/",
+      env.cookie ?? (typeof document !== "undefined" ? document.cookie : ""),
+    ),
   };
 }
 
