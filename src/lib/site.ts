@@ -2,7 +2,7 @@
 export const SITE_URL = "https://jennarhae.com";
 export const SITE_NAME = "JennaRhae";
 export const SITE_HOST = "jennarhae.com";
-export const EMAIL = "info@jennarhae.com";
+export const EMAIL = "hello@jennarhae.com";
 export const MAILTO = `mailto:${EMAIL}`;
 
 export const BOOKING_URL = "https://link.springboardcrm.com/widget/booking/5JgMZbYOgzpSpNXbNZCA";

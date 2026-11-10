@@ -11,6 +11,7 @@ const SOURCES: ReadonlyArray<readonly [string, string]> = [
   ["/life-coach-columbia-mo", "/christian-life-coach-kansas-city-mo/"],
   ["/feed", "/blog/"],
   ["/comments/feed", "/blog/"],
+  ["/the-gift-hidden-in-the-ask", "/blog/"],
 ];
 
 export const redirects: readonly Redirect[] = SOURCES.flatMap(([source, destination]) => [

@@ -10,13 +10,10 @@ export const WRITTEN_ALTS: Record<string, string> = {
     "Jenna White smiling in a car, with curly hair, a gold necklace, and long earrings",
   "src/assets/wp/christian-life-coach.jpg":
     "Jenna White in a lace wedding gown and veil, holding a red and white bouquet beside a man in a tan suit",
-  "src/assets/wp/jenna-barbosa-author.jpg":
-    "Portrait of Jenna Barbosa smiling, with long dark hair, glasses, and a floral top",
-  "src/assets/wp/angel-williams-author.jpg":
-    "Portrait of Angel Williams smiling, with long twists and a striped shirt",
+  "src/assets/wp/jenna-white-author.jpg":
+    "Portrait of Jenna White smiling, with long dark hair, glasses, and a floral top",
   "src/assets/wp/what-causes-complex-trauma.jpg":
     "Woman in a white dress standing at the ocean with her arms open, seen from behind",
-  "src/assets/wp/the-gift-hidden-in-the-ask.jpg": "Close-up of clasped hands in a cream knit sweater",
   "src/assets/wp/jenna-quotes.png": "White opening quotation marks on a black square",
   "src/assets/wp/trauma-coaching.jpg": "Woman sitting on a rocky overlook above a turquoise mountain lake",
   "src/assets/wp/how-to-trust-after-trauma.jpg":
@@ -26,7 +23,7 @@ export const WRITTEN_ALTS: Record<string, string> = {
   "src/assets/wp/trauma-nightmares.png": "Woman lying on her side in bed beside a bright window",
   "src/assets/wp/is-grief-trauma.jpg": "Two people hugging by the water in winter coats while snow falls",
   "src/assets/wp/tenacious-grace.avif":
-    "Cover of the book Tenacious Grace by Jenna Barbosa, red with a plate, heart, fork, and spoon",
+    "Cover of the book Tenacious Grace, red with a plate, heart, fork, and spoon",
 };
 
 function normalizeToken(value: string): string {

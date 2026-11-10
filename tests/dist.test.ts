@@ -120,6 +120,23 @@ describe("analytics and form bundles", () => {
       expect(contact).toContain(`href="${href}"`);
     }
     expect(contact).toMatch(/data-submit[^>]*disabled|disabled[^>]*data-submit/);
-    expect(contact).toContain("mailto:info@jennarhae.com");
+    expect(contact).toContain("mailto:hello@jennarhae.com");
+    for (const file of textFiles) {
+      expect(read(file), path.relative(DIST, file)).not.toContain("info@jennarhae.com");
+    }
+  });
+});
+
+describe("former name", () => {
+  const aboutSentence = "Many people have previously known me professionally as Jenna Barbosa,";
+
+  it("keeps Barbosa only in the About sentence that explains her former name", () => {
+    const hits: string[] = [];
+    for (const file of files) {
+      const content = read(file).replace(/data:[a-z/+-]+;base64,[A-Za-z0-9+/=]+/g, "");
+      if (/barbosa/i.test(content.split(aboutSentence).join(""))) hits.push(path.relative(DIST, file));
+    }
+    expect(hits).toEqual([]);
+    expect(read(path.join(DIST, "about", "index.html"))).toContain(aboutSentence);
   });
 });

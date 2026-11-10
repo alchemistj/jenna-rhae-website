@@ -6,19 +6,15 @@ import heroContact from "../assets/hero-contact.jpg";
 import faithCoffeeBible from "../assets/faith-coffee-bible.jpg";
 import jenna from "../assets/jenna.jpg";
 import coachJenna from "../assets/coach-jenna.jpg";
-import coachAlisha from "../assets/coach-alisha.jpg";
-import coachAngel from "../assets/coach-angel.jpg";
 import logo from "../assets/jenna-logo.png";
 import wpFlowerIcon from "../assets/wp/flower-icon.png";
 import wpJennarhaeTraumaCoach from "../assets/wp/jennarhae-trauma-coach.jpg";
 import wpFactsAboutJenna from "../assets/wp/facts-about-jenna.jpg";
 import wpChristianLifeCoach from "../assets/wp/christian-life-coach.jpg";
-import wpJennaBarbosaAuthor from "../assets/wp/jenna-barbosa-author.jpg";
-import wpAngelWilliamsAuthor from "../assets/wp/angel-williams-author.jpg";
+import wpJennaWhiteAuthor from "../assets/wp/jenna-white-author.jpg";
 import wpWhatCausesComplexTrauma from "../assets/wp/what-causes-complex-trauma.jpg";
 import wpTenaciousGrace from "../assets/wp/tenacious-grace.avif";
 import wpTraumaCoaching from "../assets/wp/trauma-coaching.jpg";
-import wpTheGiftHiddenInTheAsk from "../assets/wp/the-gift-hidden-in-the-ask.jpg";
 import wpJennaQuotes from "../assets/wp/jenna-quotes.png";
 import wpTraumaNightmares from "../assets/wp/trauma-nightmares.png";
 import wpHowToTrustAfterTrauma from "../assets/wp/how-to-trust-after-trauma.jpg";
@@ -34,19 +30,15 @@ export const images = {
   "faith-coffee-bible": faithCoffeeBible,
   jenna,
   "coach-jenna": coachJenna,
-  "coach-alisha": coachAlisha,
-  "coach-angel": coachAngel,
   logo,
   "wp-flower-icon": wpFlowerIcon,
   "wp-jennarhae-trauma-coach": wpJennarhaeTraumaCoach,
   "wp-facts-about-jenna": wpFactsAboutJenna,
   "wp-christian-life-coach": wpChristianLifeCoach,
-  "wp-jenna-barbosa-author": wpJennaBarbosaAuthor,
-  "wp-angel-williams-author": wpAngelWilliamsAuthor,
+  "wp-jenna-white-author": wpJennaWhiteAuthor,
   "wp-what-causes-complex-trauma": wpWhatCausesComplexTrauma,
   "wp-tenacious-grace": wpTenaciousGrace,
   "wp-trauma-coaching": wpTraumaCoaching,
-  "wp-the-gift-hidden-in-the-ask": wpTheGiftHiddenInTheAsk,
   "wp-jenna-quotes": wpJennaQuotes,
   "wp-trauma-nightmares": wpTraumaNightmares,
   "wp-how-to-trust-after-trauma": wpHowToTrustAfterTrauma,

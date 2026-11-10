@@ -13,7 +13,9 @@
     { "source": "/feed", "destination": "/blog/", "permanent": true },
     { "source": "/feed/", "destination": "/blog/", "permanent": true },
     { "source": "/comments/feed", "destination": "/blog/", "permanent": true },
-    { "source": "/comments/feed/", "destination": "/blog/", "permanent": true }
+    { "source": "/comments/feed/", "destination": "/blog/", "permanent": true },
+    { "source": "/the-gift-hidden-in-the-ask", "destination": "/blog/", "permanent": true },
+    { "source": "/the-gift-hidden-in-the-ask/", "destination": "/blog/", "permanent": true }
   ],
   "headers": [
     {
