@@ -22,7 +22,7 @@ const legal = footer.legal.filter((item) => isPublished(item.href));
             <a href={MAILTO} class="underline-offset-2 hover:text-gold hover:underline">{EMAIL}</a>
           </li>
           <li>
-            <a href={bookHref} class="underline-offset-2 hover:text-gold hover:underline">{footer.bookLink}</a>
+            <a href={bookHref} class="underline-offset-2 hover:text-gold hover:underline" data-cta-location="footer">{footer.bookLink}</a>
           </li>
           <li class="text-cream/70">{footer.appointment}</li>
         </ul>

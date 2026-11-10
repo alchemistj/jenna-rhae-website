@@ -1,0 +1,152 @@
+import {
+  extractAttributionFromSearch,
+  hasAttributionParams,
+  sanitizeAttributionSnapshot,
+  type AttributionSnapshot,
+  type AttributionTouch,
+} from "./allowlist";
+
+const STORAGE_KEY = "sra_attribution_v1";
+const VISITOR_ID_KEY = "sra_visitor_id_v1";
+const SESSION_ID_KEY = "sra_session_id_v1";
+const ATTRIBUTION_MAX_AGE_MS = 90 * 24 * 60 * 60 * 1000;
+
+function canUseStorage(): boolean {
+  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+}
+
+function randomAnonymousId(prefix: string): string {
+  try {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return `${prefix}-${crypto.randomUUID()}`;
+    }
+  } catch {
+    // Fall through to an opaque id for old/privacy-mode browsers.
+  }
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
+function readOrCreateId(storage: Storage | undefined, key: string, prefix: string): string {
+  if (!storage) return randomAnonymousId(prefix);
+  try {
+    const current = storage.getItem(key)?.trim();
+    if (current) return current.slice(0, 128);
+    const next = randomAnonymousId(prefix);
+    storage.setItem(key, next);
+    return next;
+  } catch {
+    return randomAnonymousId(prefix);
+  }
+}
+
+function readStored(): AttributionSnapshot | null {
+  if (!canUseStorage()) return null;
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const snapshot = sanitizeAttributionSnapshot(JSON.parse(raw) as Partial<AttributionSnapshot>);
+    const capturedAt = Date.parse(snapshot.captured_at);
+    if (!Number.isFinite(capturedAt) || Date.now() - capturedAt > ATTRIBUTION_MAX_AGE_MS) {
+      window.localStorage.removeItem(STORAGE_KEY);
+      window.localStorage.removeItem(VISITOR_ID_KEY);
+      return null;
+    }
+    return snapshot;
+  } catch {
+    return null;
+  }
+}
+
+function writeStored(snapshot: AttributionSnapshot): void {
+  if (!canUseStorage()) return;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
+  } catch {
+    // Ignore quota or privacy-mode failures.
+  }
+}
+
+function touchFromSnapshot(snapshot: AttributionSnapshot, capturedAt: string): AttributionTouch {
+  return {
+    landing_page: snapshot.landing_page,
+    referrer: snapshot.referrer,
+    utm_source: snapshot.utm_source,
+    utm_medium: snapshot.utm_medium,
+    utm_campaign: snapshot.utm_campaign,
+    utm_term: snapshot.utm_term,
+    utm_content: snapshot.utm_content,
+    utm_id: snapshot.utm_id,
+    gclid: snapshot.gclid,
+    gbraid: snapshot.gbraid,
+    wbraid: snapshot.wbraid,
+    msclkid: snapshot.msclkid,
+    fbclid: snapshot.fbclid,
+    captured_at: capturedAt,
+  };
+}
+
+export function captureAttributionOnEntry(pathname: string, search: string): AttributionSnapshot {
+  const existing = readStored();
+  const fromQuery = extractAttributionFromSearch(search);
+  const hasQuery = hasAttributionParams(search);
+  const capturedAt = new Date().toISOString();
+  const localStorage = typeof window !== "undefined" ? window.localStorage : undefined;
+  const visitorId = existing?.visitor_id ||
+    readOrCreateId(localStorage, VISITOR_ID_KEY, "visitor");
+  const sessionStorage =
+    typeof window !== "undefined" ? window.sessionStorage : undefined;
+  const sessionId = readOrCreateId(sessionStorage, SESSION_ID_KEY, "session");
+  const referrer =
+    (typeof document !== "undefined" ? document.referrer || null : null) ||
+    existing?.referrer ||
+    null;
+
+  const newTouch = hasQuery
+    ? sanitizeAttributionSnapshot({
+        ...fromQuery,
+        landing_page: pathname,
+        referrer,
+        captured_at: capturedAt,
+      })
+    : null;
+  const firstTouch = existing?.first_touch || newTouch ||
+    (existing ? touchFromSnapshot(existing, existing.captured_at) : null);
+  const latestTouch = newTouch || existing?.latest_touch || null;
+  const merged = sanitizeAttributionSnapshot({
+    landing_page: existing?.landing_page || pathname,
+    referrer: existing?.referrer || referrer,
+    utm_source: fromQuery.utm_source ?? existing?.utm_source ?? null,
+    utm_medium: fromQuery.utm_medium ?? existing?.utm_medium ?? null,
+    utm_campaign: fromQuery.utm_campaign ?? existing?.utm_campaign ?? null,
+    utm_term: fromQuery.utm_term ?? existing?.utm_term ?? null,
+    utm_content: fromQuery.utm_content ?? existing?.utm_content ?? null,
+    utm_id: fromQuery.utm_id ?? existing?.utm_id ?? null,
+    gclid: fromQuery.gclid ?? existing?.gclid ?? null,
+    gbraid: fromQuery.gbraid ?? existing?.gbraid ?? null,
+    wbraid: fromQuery.wbraid ?? existing?.wbraid ?? null,
+    msclkid: fromQuery.msclkid ?? existing?.msclkid ?? null,
+    fbclid: fromQuery.fbclid ?? existing?.fbclid ?? null,
+    captured_at: hasQuery || !existing ? capturedAt : existing.captured_at,
+    visitor_id: visitorId,
+    session_id: sessionId,
+    first_touch: firstTouch,
+    latest_touch: latestTouch,
+  });
+  writeStored(merged);
+  return merged;
+}
+
+export function getStoredAttribution(): AttributionSnapshot {
+  return readStored() ?? sanitizeAttributionSnapshot({});
+}
+
+export function clearStoredAttributionForTests(): void {
+  if (!canUseStorage()) return;
+  window.localStorage.removeItem(STORAGE_KEY);
+  window.localStorage.removeItem(VISITOR_ID_KEY);
+  try {
+    window.sessionStorage.removeItem(SESSION_ID_KEY);
+  } catch {
+    // Ignore unavailable session storage.
+  }
+}

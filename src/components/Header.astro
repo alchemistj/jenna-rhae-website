@@ -7,6 +7,7 @@
 import { header, brand } from "../data/site";
 import { isPublished } from "../lib/routeRegistry";
 import { getInlineLogo } from "../lib/inlineImage";
+import { isContactHref } from "../lib/measurement/contactHref";
 import BookButton from "./BookButton.astro";
 import Icon from "./Icon.astro";
 
@@ -37,6 +38,7 @@ const logoHeight = Math.round(logo.height / 2);
               item.href === path ? "font-bold text-accent" : "text-charcoal/85",
             ]}
             aria-current={item.href === path ? "page" : undefined}
+            data-cta-location={isContactHref(item.href) ? "header" : undefined}
           >
             {item.label}
           </a>
@@ -45,8 +47,8 @@ const logoHeight = Math.round(logo.height / 2);
     </nav>
 
     <div class="flex items-center gap-2">
-      <BookButton label={header.bookLong} href={bookHref} class="btn-sm hidden sm:inline-flex" />
-      <BookButton label={header.bookShort} href={bookHref} class="btn-sm sm:hidden" />
+      <BookButton label={header.bookLong} href={bookHref} location="header" class="btn-sm hidden sm:inline-flex" />
+      <BookButton label={header.bookShort} href={bookHref} location="header" class="btn-sm sm:hidden" />
       <details class="group md:hidden" data-menu>
         <summary
           class="flex h-12 w-12 cursor-pointer list-none items-center justify-center text-charcoal [&::-webkit-details-marker]:hidden"
@@ -66,12 +68,13 @@ const logoHeight = Math.round(logo.height / 2);
                   href={item.href}
                   class:list={["py-3 text-base", item.href === path ? "font-bold text-accent" : "text-charcoal"]}
                   aria-current={item.href === path ? "page" : undefined}
+                  data-cta-location={isContactHref(item.href) ? "mobile_menu" : undefined}
                 >
                   {item.label}
                 </a>
               ))
             }
-            <BookButton label={header.bookLong} href={bookHref} class="mt-2" />
+            <BookButton label={header.bookLong} href={bookHref} location="mobile_menu" class="mt-2" />
           </div>
         </nav>
       </details>

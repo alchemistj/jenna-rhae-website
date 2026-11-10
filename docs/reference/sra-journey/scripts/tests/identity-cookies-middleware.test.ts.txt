@@ -1,0 +1,258 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { MIDDLEWARE_OWNED_REDIRECTS } from "../lib/legacy-bulk-redirects.mjs";
+import middleware, {
+  ENTRY_REDIRECTS,
+  FF_ENTRY_COOKIE,
+  FF_ENTRY_MAX_AGE_SECONDS,
+  FF_SID_COOKIE,
+  FF_SID_MAX_AGE_SECONDS,
+  FF_VID_COOKIE,
+  FF_VID_MAX_AGE_SECONDS,
+  config,
+} from "../../middleware.ts";
+
+const PAGE = "https://www.sraroofs.com/springfield/roof-repair/";
+const BROWSER =
+  "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/;
+
+function htmlRequest(url: string, init: RequestInit = {}): Request {
+  const headers = new Headers(init.headers);
+  if (!headers.has("user-agent")) headers.set("user-agent", BROWSER);
+  return new Request(url, { ...init, headers });
+}
+
+function setCookies(response: Response): string[] {
+  return response.headers.getSetCookie();
+}
+
+function cookieValue(header: string, name: string): string {
+  const match = header.match(new RegExp(`^${name}=([^;]+)`));
+  assert.ok(match, `${name} cookie missing from ${header}`);
+  return decodeURIComponent(match[1] ?? "");
+}
+
+function assertPassThrough(response: Response): void {
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("location"), null);
+  assert.equal(response.headers.get("x-middleware-next"), "1");
+  const names = [...response.headers.keys()].filter((name) => name !== "x-middleware-next");
+  assert.deepEqual(names, []);
+}
+
+describe("ff_vid / ff_sid middleware", () => {
+  it("declares a matcher that skips api, astro assets, images, fonts, scripts, and text files", () => {
+    const matcher = config.matcher.join(" ");
+    for (const token of [
+      "api/",
+      "_astro/",
+      "images/",
+      "fonts/",
+      "scripts/",
+      "favicon",
+      "robots\\.txt",
+      "sitemap",
+      "llms",
+    ]) {
+      assert.match(matcher, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    }
+  });
+
+  it("sets both cookies on a canonical HTML request and only refreshes ff_sid next time", () => {
+    const first = middleware(htmlRequest(PAGE));
+    assert.equal(first.headers.get("x-middleware-next"), "1");
+    assert.equal(first.headers.get("location"), null);
+    assert.ok(first.status < 300);
+    const cookies = setCookies(first);
+    assert.equal(cookies.length, 2);
+    const visitor = cookies.find((cookie) => cookie.startsWith(`${FF_VID_COOKIE}=`));
+    const session = cookies.find((cookie) => cookie.startsWith(`${FF_SID_COOKIE}=`));
+    assert.ok(visitor);
+    assert.ok(session);
+    const visitorId = cookieValue(visitor, FF_VID_COOKIE);
+    const sessionId = cookieValue(session, FF_SID_COOKIE);
+    assert.match(visitorId, ID_PATTERN);
+    assert.match(sessionId, ID_PATTERN);
+    assert.notEqual(visitorId, sessionId);
+    assert.equal(
+      visitor,
+      `${FF_VID_COOKIE}=${visitorId}; Path=/; Max-Age=${FF_VID_MAX_AGE_SECONDS}; SameSite=Lax; Secure`,
+    );
+    assert.equal(
+      session,
+      `${FF_SID_COOKIE}=${sessionId}; Path=/; Max-Age=${FF_SID_MAX_AGE_SECONDS}; SameSite=Lax; Secure`,
+    );
+    assert.equal(visitor.includes("HttpOnly"), false);
+    assert.equal(session.includes("HttpOnly"), false);
+    assert.equal(FF_VID_MAX_AGE_SECONDS, 15_552_000);
+    assert.equal(FF_SID_MAX_AGE_SECONDS, 1_800);
+
+    const second = middleware(
+      htmlRequest(PAGE, {
+        headers: { cookie: `${FF_VID_COOKIE}=${visitorId}; ${FF_SID_COOKIE}=${sessionId}` },
+      }),
+    );
+    const refreshed = setCookies(second);
+    assert.deepEqual(refreshed, [
+      `${FF_SID_COOKIE}=${sessionId}; Path=/; Max-Age=${FF_SID_MAX_AGE_SECONDS}; SameSite=Lax; Secure`,
+    ]);
+    assert.equal(refreshed.some((cookie) => cookie.startsWith(`${FF_VID_COOKIE}=`)), false);
+  });
+
+  it("sets the same pair on HEAD and nothing on POST", () => {
+    const head = setCookies(middleware(htmlRequest(PAGE, { method: "HEAD" })));
+    assert.equal(head.length, 2);
+    const post = middleware(htmlRequest(PAGE, { method: "POST" }));
+    assertPassThrough(post);
+  });
+
+  it("sets nothing for api, astro assets, images, fonts, or a bot", () => {
+    const cases = [
+      htmlRequest("https://www.sraroofs.com/api/site-events/"),
+      htmlRequest("https://www.sraroofs.com/_astro/app.js"),
+      htmlRequest("https://www.sraroofs.com/images/roof.webp"),
+      htmlRequest("https://www.sraroofs.com/fonts/inter.woff2"),
+      htmlRequest("https://www.sraroofs.com/scripts/analytics.js"),
+      htmlRequest("https://www.sraroofs.com/favicon.ico"),
+      htmlRequest("https://www.sraroofs.com/robots.txt"),
+      htmlRequest("https://www.sraroofs.com/sitemap.xml"),
+      htmlRequest("https://www.sraroofs.com/llms.txt"),
+      htmlRequest(PAGE, {
+        headers: {
+          "user-agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+        },
+      }),
+      htmlRequest(PAGE, {
+        headers: {
+          "user-agent":
+            "Mozilla/5.0 (Linux; Android 11; moto g power) AppleWebKit/537.36 Chrome/119.0.0.0 Mobile Safari/537.36 Chrome-Lighthouse",
+        },
+      }),
+      htmlRequest(PAGE, { headers: { purpose: "prefetch" } }),
+      htmlRequest(PAGE, { headers: { "sec-purpose": "prefetch" } }),
+    ];
+    for (const request of cases) {
+      const response = middleware(request);
+      assertPassThrough(response);
+      assert.equal(setCookies(response).length, 0, request.url);
+    }
+  });
+
+  it("sets cookies for a CUBOT phone and still skips a user agent whose token is bot", () => {
+    const cubot = middleware(
+      htmlRequest(PAGE, {
+        headers: {
+          "user-agent":
+            "Mozilla/5.0 (Linux; Android 11; CUBOT KINGKONG) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+        },
+      }),
+    );
+    assert.equal(setCookies(cubot).length, 2);
+
+    const word = middleware(
+      htmlRequest(PAGE, {
+        headers: {
+          "user-agent": "Mozilla/5.0 (compatible; ExampleBot/1.0; +https://example.com/bot)",
+        },
+      }),
+    );
+    assertPassThrough(word);
+    assert.equal(setCookies(word).length, 0);
+  });
+
+  it("does not rewrite or redirect a non-canonical path", () => {
+    const response = middleware(htmlRequest("https://www.sraroofs.com/springfield/roof-repair"));
+    assertPassThrough(response);
+  });
+});
+
+describe("ff_entry Business Profile redirect", () => {
+  const GOOGLEBOT = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)";
+  const ENTRY_COOKIE_HEADER = "ff_entry=gbp-springfield; Path=/; Max-Age=1800; SameSite=Lax; Secure";
+
+  it("runs for /Springfield under the matcher", () => {
+    const pattern = new RegExp(`^${config.matcher[0]}$`);
+    assert.ok(pattern.test("/Springfield"));
+    assert.ok(pattern.test("/Springfield/"));
+  });
+
+  it("sends a human a 308 with the ff_entry cookie and the query string intact", () => {
+    for (const path of ["/Springfield", "/Springfield/"]) {
+      const response = middleware(
+        htmlRequest(`https://www.sraroofs.com${path}?utm_source=gbp&utm_medium=organic&x=a%20b`),
+      );
+      assert.equal(response.status, 308);
+      assert.equal(
+        response.headers.get("location"),
+        "/springfield/?utm_source=gbp&utm_medium=organic&x=a%20b",
+      );
+      assert.deepEqual(setCookies(response), [ENTRY_COOKIE_HEADER]);
+      assert.equal(setCookies(response)[0]?.includes("HttpOnly"), false);
+      assert.equal(response.headers.get("x-middleware-next"), null);
+    }
+    assert.equal(FF_ENTRY_COOKIE, "ff_entry");
+    assert.equal(FF_ENTRY_MAX_AGE_SECONDS, 1_800);
+  });
+
+  it("redirects without a query string cleanly", () => {
+    const response = middleware(htmlRequest("https://www.sraroofs.com/Springfield"));
+    assert.equal(response.status, 308);
+    assert.equal(response.headers.get("location"), "/springfield/");
+  });
+
+  it("sends a bot the same 308 and no cookie", () => {
+    for (const path of ["/Springfield", "/Springfield/"]) {
+      const response = middleware(
+        htmlRequest(`https://www.sraroofs.com${path}?a=1`, { headers: { "user-agent": GOOGLEBOT } }),
+      );
+      assert.equal(response.status, 308);
+      assert.equal(response.headers.get("location"), "/springfield/?a=1");
+      assert.equal(setCookies(response).length, 0);
+    }
+    const noAgent = middleware(
+      new Request("https://www.sraroofs.com/Springfield", { headers: { "user-agent": "" } }),
+    );
+    assert.equal(noAgent.status, 308);
+  });
+
+  it("sets no cookie on a prefetch but still redirects it", () => {
+    const response = middleware(
+      htmlRequest("https://www.sraroofs.com/Springfield", { headers: { purpose: "prefetch" } }),
+    );
+    assert.equal(response.status, 308);
+    assert.equal(setCookies(response).length, 0);
+  });
+
+  it("leaves lowercase /springfield/ and look-alike paths untouched", () => {
+    for (const path of [
+      "/springfield/",
+      "/springfield",
+      "/SPRINGFIELD/",
+      "/SpringfieldMeta",
+      "/Springfield/roof-repair/",
+      "//Springfield",
+      "/constructor",
+      "/__proto__",
+    ]) {
+      const response = middleware(htmlRequest(`https://www.sraroofs.com${path}`));
+      assert.notEqual(response.status, 308, path);
+      assert.equal(response.headers.get("location"), null, path);
+      assert.equal(
+        setCookies(response).some((cookie) => cookie.startsWith("ff_entry=")),
+        false,
+        path,
+      );
+    }
+    const lower = setCookies(middleware(htmlRequest("https://www.sraroofs.com/springfield/")));
+    assert.equal(lower.length, 2, "lowercase hub keeps ff_vid/ff_sid behavior");
+  });
+
+  it("keeps ENTRY_REDIRECTS in step with the bulk-redirect builder", () => {
+    const owned = Object.fromEntries(
+      Object.entries(ENTRY_REDIRECTS).map(([source, rule]) => [source, rule.destination]),
+    );
+    assert.deepEqual(owned, { ...MIDDLEWARE_OWNED_REDIRECTS });
+    assert.equal(ENTRY_REDIRECTS["/Springfield"]?.entry, "gbp-springfield");
+  });
+});

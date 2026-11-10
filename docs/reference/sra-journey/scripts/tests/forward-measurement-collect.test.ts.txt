@@ -1,0 +1,204 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { afterEach, describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
+import {
+  CLIENT_USER_AGENT_HEADER,
+  MAX_CLIENT_USER_AGENT_CHARS,
+  MEASUREMENT_FORWARD_KEYS,
+  MEASUREMENT_SITE_KEY,
+  REPORTS_MEASUREMENT_COLLECT_URL,
+  forwardMeasurementCollect,
+  measurementCollectHealth,
+} from "../../server/lib/forwardMeasurementCollect.ts";
+import { handleSiteEvents } from "../../api/site-events.ts";
+
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "../..");
+
+const productionEvent = {
+  contractVersion: "ff-measure.v1",
+  siteKey: "window-dudes",
+  environment: "production",
+  event: "page_view",
+  eventId: "sra-11111111-1111-4111-8111-111111111111",
+  occurredAt: "2026-11-03T12:00:00.000Z",
+  visitorId: "visitor-11111111-1111-4111-8111-111111111111",
+  sessionId: "session-11111111-1111-4111-8111-111111111111",
+  landingPath: "/springfield/roof-repair/",
+  currentPath: "/contact/",
+  referrer: "https://www.google.com/search",
+  utmSource: "google",
+  utmMedium: "cpc",
+  utmCampaign: "roof-repair",
+  gclid: "click-123",
+  channel: "paid",
+  device: "desktop",
+  citySlug: "springfield",
+  serviceSlug: "roof-repair",
+  email: "jane@example.com",
+  phone: "(417) 555-0100",
+  name: "Jane Homeowner",
+  engaged: true,
+  automation: false,
+  message: "Leak near the chimney.",
+};
+
+describe("forwardMeasurementCollect", () => {
+  afterEach(() => {
+    // fetch is injected per test; nothing global is stubbed.
+  });
+
+  it("drops unknown keys, forces the SRA site key, and forwards the production Origin", async () => {
+    let forwardedUrl = "";
+    let forwardedBody: Record<string, unknown> | null = null;
+    let forwardedOrigin = "";
+    const fetchImpl = (async (url: string | URL | Request, init?: RequestInit) => {
+      forwardedUrl = String(url);
+      forwardedBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      forwardedOrigin = (init?.headers as Record<string, string>).Origin;
+      return new Response(JSON.stringify({ ok: true, accepted: 1, ignored: 0 }), {
+        status: 202,
+        headers: { "content-type": "application/json" },
+      });
+    }) as typeof fetch;
+
+    const result = await forwardMeasurementCollect({
+      body: productionEvent,
+      origin: "https://www.sraroofs.com",
+      vercelEnv: "production",
+      fetchImpl,
+    });
+
+    assert.equal(result.status, 202);
+    assert.equal(forwardedUrl, REPORTS_MEASUREMENT_COLLECT_URL);
+    assert.equal(forwardedOrigin, "https://www.sraroofs.com");
+    assert.ok(forwardedBody);
+    assert.equal(forwardedBody.siteKey, MEASUREMENT_SITE_KEY);
+    assert.equal(forwardedBody.environment, "production");
+    assert.equal(forwardedBody.event, "page_view");
+    assert.equal(forwardedBody.eventId, productionEvent.eventId);
+    assert.equal(forwardedBody.gclid, "click-123");
+    for (const key of Object.keys(forwardedBody)) {
+      assert.equal(MEASUREMENT_FORWARD_KEYS.includes(key as (typeof MEASUREMENT_FORWARD_KEYS)[number]), true);
+    }
+    assert.equal("email" in forwardedBody, false);
+    assert.equal("phone" in forwardedBody, false);
+    assert.equal("name" in forwardedBody, false);
+    assert.equal(forwardedBody.engaged, true);
+    assert.equal("automation" in forwardedBody, false);
+    assert.equal("message" in forwardedBody, false);
+    assert.doesNotMatch(JSON.stringify(forwardedBody), /jane@example.com|555-0100|Jane Homeowner/);
+  });
+
+  it("forwards automation only when true and sends the visitor user agent", async () => {
+    const longAgent = `Mozilla/5.0 ${"A".repeat(1100)}`;
+    let headers: Record<string, string> = {};
+    let forwardedBody: Record<string, unknown> | null = null;
+    const fetchImpl = (async (_url: string | URL | Request, init?: RequestInit) => {
+      headers = init?.headers as Record<string, string>;
+      forwardedBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      return new Response(JSON.stringify({ ok: true }), { status: 202 });
+    }) as typeof fetch;
+
+    const forwarded = await forwardMeasurementCollect({
+      body: { ...productionEvent, automation: true },
+      origin: "https://www.sraroofs.com",
+      vercelEnv: "production",
+      userAgent: longAgent,
+      fetchImpl,
+    });
+    assert.equal(forwarded.status, 202);
+    assert.equal(forwardedBody?.automation, true);
+    assert.equal(forwardedBody?.engaged, true);
+    assert.equal(headers[CLIENT_USER_AGENT_HEADER], longAgent.trim().slice(0, MAX_CLIENT_USER_AGENT_CHARS));
+    assert.equal(headers[CLIENT_USER_AGENT_HEADER]?.length, MAX_CLIENT_USER_AGENT_CHARS);
+
+    let secondHeaders: Record<string, string> = {};
+    const omitted = await forwardMeasurementCollect({
+      body: productionEvent,
+      origin: "https://www.sraroofs.com",
+      vercelEnv: "production",
+      userAgent: "   ",
+      fetchImpl: (async (_url: string | URL | Request, init?: RequestInit) => {
+        secondHeaders = init?.headers as Record<string, string>;
+        return new Response("{}", { status: 202 });
+      }) as typeof fetch,
+    });
+    assert.equal(omitted.status, 202);
+    assert.equal(CLIENT_USER_AGENT_HEADER in secondHeaders, false);
+  });
+
+  it("does not forward a production event from a non-production host", async () => {
+    let called = false;
+    const fetchImpl = (async () => {
+      called = true;
+      return new Response("{}", { status: 202 });
+    }) as typeof fetch;
+
+    const result = await forwardMeasurementCollect({
+      body: productionEvent,
+      origin: "https://sra-roofing-website-git-preview.vercel.app",
+      vercelEnv: "production",
+      fetchImpl,
+    });
+
+    assert.equal(called, false);
+    assert.equal(result.status, 202);
+    assert.deepEqual(JSON.parse(result.body), {
+      ok: true,
+      stored: false,
+      skipped: "non_production_host",
+      originRewrite: "none",
+    });
+  });
+
+  it("sets preview from VERCEL_ENV and does not relabel that event as production", async () => {
+    let forwardedBody: Record<string, unknown> | null = null;
+    const fetchImpl = (async (_url: string | URL | Request, init?: RequestInit) => {
+      forwardedBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      return new Response(JSON.stringify({ ok: true, accepted: 0, ignored: 1 }), {
+        status: 202,
+        headers: { "content-type": "application/json" },
+      });
+    }) as typeof fetch;
+
+    const result = await forwardMeasurementCollect({
+      body: { ...productionEvent, environment: "production" },
+      origin: "https://sra-roofing-website-git-preview.vercel.app",
+      vercelEnv: "preview",
+      fetchImpl,
+    });
+
+    assert.equal(result.status, 202);
+    assert.equal(forwardedBody?.environment, "preview");
+    assert.notEqual(forwardedBody?.environment, "production");
+    assert.equal(forwardedBody?.siteKey, MEASUREMENT_SITE_KEY);
+  });
+
+  it("returns 502 when Reports is unreachable", async () => {
+    const fetchImpl = (async () => {
+      throw new Error("offline");
+    }) as typeof fetch;
+    const result = await forwardMeasurementCollect({
+      body: productionEvent,
+      origin: "https://www.sraroofs.com",
+      vercelEnv: "production",
+      fetchImpl,
+    });
+    assert.equal(result.status, 502);
+  });
+
+  it("keeps GET health local and names the collect upstream without an Origin rewrite", async () => {
+    assert.equal(measurementCollectHealth().originRewrite, "none");
+    assert.equal(measurementCollectHealth().siteKey, MEASUREMENT_SITE_KEY);
+    const health = await handleSiteEvents({ method: "GET" });
+    assert.equal(health.status, 200);
+    assert.equal(JSON.parse(health.body).upstream, REPORTS_MEASUREMENT_COLLECT_URL);
+    const source = readFileSync(path.join(root, "api/site-events.ts"), "utf8");
+    assert.match(source, /measurementCollectHealth/);
+    assert.match(source, /from "\.\.\/server\/lib\/forwardMeasurementCollect\.js"/);
+    assert.doesNotMatch(source, /forwardMeasurementCollect\.ts/);
+    assert.doesNotMatch(source, /www\.windowdudesllc\.com/);
+  });
+});

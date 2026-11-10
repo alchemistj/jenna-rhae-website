@@ -2,6 +2,7 @@
 /** Renders WordPress body runs in source order. Inline markdown is already HTML. */
 import type { WpRun } from "../data/types";
 import { getImageMeta } from "../lib/images";
+import { isContactHref } from "../lib/measurement/contactHref";
 import WpFigure from "./WpFigure.astro";
 
 interface Props {
@@ -55,6 +56,7 @@ function inlineSide(run: WpRun): "left" | "right" {
             class="btn-accent"
             target={run.newTab ? "_blank" : undefined}
             rel={run.newTab ? "noopener noreferrer" : undefined}
+            data-cta-location={isContactHref(run.href) ? "main" : undefined}
             set:html={run.html}
           />
         </p>

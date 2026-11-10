@@ -7,6 +7,7 @@
  * - Fires GA4 generate_lead once per stored lead (never for duplicates).
  */
 import type { FormCopy } from "../data/types";
+import { isContactHref } from "../lib/measurement/contactHref";
 import { EMAIL, MAILTO } from "../lib/site";
 import Section from "./Section.astro";
 
@@ -15,6 +16,7 @@ interface Props {
   bookHref: string;
 }
 const { form, bookHref } = Astro.props;
+const bookLocation = isContactHref(bookHref) ? "main" : undefined;
 ---
 
 <Section id="contact-form">
@@ -132,7 +134,7 @@ const { form, bookHref } = Astro.props;
           {form.fallbackEmailLead}
           <a href={MAILTO} class="link-accent underline">{EMAIL}</a>
           {form.fallbackOr}
-          <a href={bookHref} class="link-accent underline">{form.fallbackBookLabel}</a>.
+          <a href={bookHref} class="link-accent underline" data-cta-location={bookLocation}>{form.fallbackBookLabel}</a>.
         </p>
         <p data-msg="success" class="font-bold" hidden>{form.success}</p>
         <p data-msg="invalid" class="font-bold text-accent" hidden>{form.invalid}</p>
@@ -141,14 +143,14 @@ const { form, bookHref } = Astro.props;
           {form.fallbackEmailLead}
           <a href={MAILTO} class="underline">{EMAIL}</a>
           {form.fallbackOr}
-          <a href={bookHref} class="underline">{form.fallbackBookLabel}</a>.
+          <a href={bookHref} class="underline" data-cta-location={bookLocation}>{form.fallbackBookLabel}</a>.
         </p>
         <p data-msg="unconfirmed" class="font-bold text-accent" hidden>
           {form.unconfirmed}
           {form.fallbackEmailLead}
           <a href={MAILTO} class="underline">{EMAIL}</a>
           {form.fallbackOr}
-          <a href={bookHref} class="underline">{form.fallbackBookLabel}</a>.
+          <a href={bookHref} class="underline" data-cta-location={bookLocation}>{form.fallbackBookLabel}</a>.
         </p>
         <p data-msg="not_production" class="text-sm soft" hidden>{form.notProduction}</p>
       </div>
@@ -159,7 +161,7 @@ const { form, bookHref } = Astro.props;
           {form.fallbackEmailLead}
           <a href={MAILTO} class="link-accent underline">{EMAIL}</a>
           {form.fallbackOr}
-          <a href={bookHref} class="link-accent underline">{form.fallbackBookLabel}</a>.
+          <a href={bookHref} class="link-accent underline" data-cta-location={bookLocation}>{form.fallbackBookLabel}</a>.
         </p>
       </noscript>
     </form>
@@ -169,6 +171,7 @@ const { form, bookHref } = Astro.props;
 <script>
   import { createLeadSubmitter, type LeadResult } from "../lib/leadSubmit";
   import { trackEvent } from "../lib/analytics";
+  import { collectLeadFormSuccess } from "../lib/measurement/collect";
 
   const FIRED_KEY = "ff-lead-fired";
   const form = document.querySelector<HTMLFormElement>("[data-lead-form]");
@@ -262,6 +265,7 @@ const { form, bookHref } = Astro.props;
       if (result.kind === "success") {
         form.reset();
         startedAt = Date.now();
+        void collectLeadFormSuccess({ submissionId: result.id, formSource: "main-contact" });
         if (result.conversion && !alreadyFired(result.id)) {
           markFired(result.id);
           trackEvent("generate_lead", { transaction_id: result.id });

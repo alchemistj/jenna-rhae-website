@@ -2,13 +2,17 @@
 /**
  * Primary call to action. `href` comes from bookHref(hasBooking): "#book" on a page with the embed,
  * "/contact/#book" elsewhere. Never an external link.
+ * `location` is the journey-tracking ctaLocation. It is an attribute, not visible copy.
  */
+import type { CtaLocation } from "../lib/measurement/ctaLocation";
+
 interface Props {
   label: string;
   href: string;
+  location: CtaLocation;
   class?: string;
 }
-const { label, href, class: className } = Astro.props;
+const { label, href, location, class: className } = Astro.props;
 ---
 
-<a href={href} class:list={["btn-accent", className]} data-book>{label}</a>
+<a href={href} class:list={["btn-accent", className]} data-book data-cta-location={location}>{label}</a>

@@ -4,6 +4,8 @@
  * #trauma-quiz links go to the quiz on /free-trauma-test/.
  */
 
+import { isContactHref } from "./measurement/contactHref";
+
 const TRAUMA_QUIZ_HREF = "/free-trauma-test/#trauma-quiz";
 
 export function rewriteHref(href: string): string {
@@ -31,7 +33,8 @@ export function renderInline(input: string): string {
     const href = rewriteHref(match[2] ?? "");
     const external = /^https?:\/\//.test(href);
     const extra = external ? ' target="_blank" rel="noopener noreferrer"' : "";
-    parts.push(`<a class="link-accent" href="${escapeHtml(href)}"${extra}>${label}</a>`);
+    const cta = isContactHref(href) ? ' data-cta-location="main"' : "";
+    parts.push(`<a class="link-accent" href="${escapeHtml(href)}"${cta}${extra}>${label}</a>`);
     last = match.index + match[0].length;
   }
   parts.push(emphasis(escapeHtml(input.slice(last))).replace(/\n/g, "<br />"));
