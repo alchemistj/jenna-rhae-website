@@ -1,0 +1,224 @@
+import assert from "node:assert/strict";
+import { afterEach, describe, it } from "node:test";
+import { submitLead } from "../../src/lib/leads/submitLead.ts";
+
+const VISITOR = "visitor-11111111-1111-4111-8111-111111111111";
+const SESSION = "session-11111111-1111-4111-8111-111111111111";
+const COOKIE_VISITOR = "ffvid-11111111-1111-4111-8111-111111111111";
+const COOKIE_SESSION = "ffsid-11111111-1111-4111-8111-111111111111";
+const SUBMISSION = "11111111-1111-4111-8111-111111111111";
+const EVENT_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/;
+
+const originalFetch = globalThis.fetch;
+
+function installCookieHeader(header: string) {
+  Object.defineProperty(globalThis, "document", {
+    configurable: true,
+    value: { cookie: header, referrer: "" },
+  });
+}
+
+afterEach(() => {
+  globalThis.fetch = originalFetch;
+  delete (globalThis as { document?: unknown }).document;
+  delete (globalThis as { window?: unknown }).window;
+});
+
+describe("Central Forms attribution envelope", () => {
+  it("sends a top-level attribution envelope with the same visitor and session as the lead event", async () => {
+    let leadBody: Record<string, unknown> | null = null;
+    const events: Array<Record<string, unknown>> = [];
+    globalThis.fetch = (async (url, init) => {
+      const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      if (String(url).includes("/api/site-events")) {
+        events.push(body);
+        return new Response("{}", { status: 202 });
+      }
+      leadBody = body;
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          id: "22222222-2222-4222-8222-222222222222",
+          duplicate: false,
+          conversionEligible: true,
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }) as typeof fetch;
+
+    installCookieHeader(`ff_vid=${COOKIE_VISITOR}; ff_sid=${COOKIE_SESSION}`);
+    const result = await submitLead({
+      name: "Jane Homeowner",
+      phone: "4175550100",
+      email: "jane@example.com",
+      message: "Leak near the chimney.",
+      page_path: "/contact/",
+      form_source: "contact_form",
+      client_submission_id: SUBMISSION,
+      form_started_at: Date.now() - 4_000,
+      website: "",
+      attribution: {
+        landing_page: "/contact/?email=jane@example.com",
+        referrer: "https://www.google.com/search?q=jane@example.com",
+        utm_source: "google",
+        utm_medium: "cpc",
+        utm_campaign: "roof-repair",
+        utm_term: "springfield roof",
+        utm_content: "ad",
+        utm_id: "campaign-1",
+        gclid: "click-123",
+        gbraid: null,
+        wbraid: null,
+        msclkid: null,
+        fbclid: "fb-secret",
+        captured_at: "2026-11-03T12:00:00.000Z",
+        visitor_id: VISITOR,
+        session_id: SESSION,
+        first_touch: {
+          landing_page: "/springfield/roof-repair/?utm_source=google",
+          referrer: "https://news.example.com/story?id=1",
+          utm_source: "google",
+          utm_medium: "cpc",
+          utm_campaign: "roof-repair",
+          utm_term: null,
+          utm_content: null,
+          utm_id: null,
+          gclid: "click-123",
+          gbraid: null,
+          wbraid: null,
+          msclkid: null,
+          fbclid: "fb-secret",
+          captured_at: "2026-11-03T11:00:00.000Z",
+        },
+        latest_touch: {
+          landing_page: "/contact/?email=jane@example.com",
+          referrer: "https://www.google.com/search?q=jane@example.com",
+          utm_source: "google",
+          utm_medium: "cpc",
+          utm_campaign: "roof-repair",
+          utm_term: "springfield roof",
+          utm_content: "ad",
+          utm_id: "campaign-1",
+          gclid: "click-123",
+          gbraid: null,
+          wbraid: null,
+          msclkid: null,
+          fbclid: "fb-secret",
+          captured_at: "2026-11-03T12:00:00.000Z",
+        },
+      },
+    });
+
+    assert.equal(result.ok, true);
+    assert.ok(leadBody);
+    const body = leadBody as Record<string, unknown>;
+    const attribution = body.attribution as Record<string, unknown>;
+    const raw = (body.rawPayload as { attribution: { fbclid: string; referrer: string } }).attribution;
+    assert.equal(raw.fbclid, "fb-secret");
+    assert.match(raw.referrer, /jane@example.com/);
+
+    assert.equal(attribution.site_key, "sra-roofing-website");
+    assert.match(String(attribution.event_id), EVENT_ID_PATTERN);
+    assert.equal(attribution.visitor_id, COOKIE_VISITOR);
+    assert.equal(attribution.session_id, COOKIE_SESSION);
+    assert.equal(attribution.landing_page, "/contact/");
+    assert.equal(attribution.referrer, "https://www.google.com/search");
+    assert.equal(attribution.utm_source, "google");
+    assert.equal(attribution.utm_medium, "cpc");
+    assert.equal(attribution.utm_campaign, "roof-repair");
+    assert.equal(attribution.gclid, "click-123");
+    assert.equal((attribution.utm_params as Record<string, string>).utm_source, "google");
+    assert.equal((attribution.utm_params as Record<string, string>).utm_id, "campaign-1");
+    assert.equal(attribution.assignment_snapshot, null);
+    assert.equal("fbclid" in attribution, false);
+    assert.equal(
+      (attribution.first_touch as { landing_page: string; referrer: string }).landing_page,
+      "/springfield/roof-repair/",
+    );
+    assert.equal(
+      (attribution.first_touch as { referrer: string }).referrer,
+      "https://news.example.com/story",
+    );
+    assert.equal("fbclid" in (attribution.first_touch as object), false);
+    assert.equal(
+      (attribution.latest_touch as { utm_medium: string }).utm_medium,
+      "cpc",
+    );
+    assert.doesNotMatch(JSON.stringify(attribution), /jane@example.com|fb-secret|Jane Homeowner|4175550100/);
+
+    assert.equal(events.length, 1);
+    assert.equal(events[0]?.event, "lead_form_success");
+    assert.equal(events[0]?.eventId, attribution.event_id);
+    assert.equal(events[0]?.visitorId, attribution.visitor_id);
+    assert.equal(events[0]?.sessionId, attribution.session_id);
+    assert.equal(events[0]?.submissionId, SUBMISSION);
+  });
+
+  it("falls back to stored SRA ids and still sends the lead event when the cookies are missing", async () => {
+    let leadBody: Record<string, unknown> | null = null;
+    const events: Array<Record<string, unknown>> = [];
+    globalThis.fetch = (async (url, init) => {
+      const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      if (String(url).includes("/api/site-events")) {
+        events.push(body);
+        return new Response("{}", { status: 202 });
+      }
+      leadBody = body;
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          id: "22222222-2222-4222-8222-222222222222",
+          duplicate: false,
+          conversionEligible: true,
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }) as typeof fetch;
+
+    const result = await submitLead({
+      name: "Jane Homeowner",
+      phone: "4175550100",
+      email: "jane@example.com",
+      message: "Leak near the chimney.",
+      page_path: "/contact/",
+      form_source: "contact_form",
+      client_submission_id: SUBMISSION,
+      form_started_at: Date.now() - 4_000,
+      website: "",
+      attribution: {
+        landing_page: "/contact/",
+        referrer: null,
+        utm_source: null,
+        utm_medium: null,
+        utm_campaign: null,
+        utm_term: null,
+        utm_content: null,
+        utm_id: null,
+        gclid: null,
+        gbraid: null,
+        wbraid: null,
+        msclkid: null,
+        fbclid: null,
+        captured_at: "2026-11-03T12:00:00.000Z",
+        visitor_id: VISITOR,
+        session_id: SESSION,
+        first_touch: null,
+        latest_touch: null,
+      },
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(events.length, 1);
+    assert.ok(leadBody);
+    const attribution = (leadBody as Record<string, unknown>).attribution as {
+      visitor_id: string;
+      session_id: string;
+    };
+    assert.equal(attribution.visitor_id, VISITOR);
+    assert.equal(attribution.session_id, SESSION);
+    assert.equal(events[0]?.event, "lead_form_success");
+    assert.equal(events[0]?.visitorId, VISITOR);
+    assert.equal(events[0]?.sessionId, SESSION);
+    assert.doesNotMatch(JSON.stringify(events[0]), /jane@example.com|Jane Homeowner|4175550100/);
+  });
+});

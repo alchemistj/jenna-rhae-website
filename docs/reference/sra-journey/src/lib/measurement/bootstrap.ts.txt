@@ -1,0 +1,90 @@
+import {
+  beginPageEngagement,
+  buildMeasurementEvent,
+  collectMeasurementEvent,
+  collectPageView,
+  collectSchedulerOpened,
+  pageViewEventIdFor,
+  releasePageViewForRestore,
+  signalPageEngaged,
+} from "./collect";
+import { watchEngagedSignal } from "./engaged";
+import { bindJourneyPhoneClicks } from "./interactions";
+import { subscribeSchedulerOpened } from "../servicetitan/scheduler";
+
+let stopPhoneClicks: (() => void) | undefined;
+let unsubscribeScheduler: (() => void) | undefined;
+let stopEngagement: (() => void) | undefined;
+let listenersArmed = false;
+
+/**
+ * Phone and scheduler listeners can arm before the first page view so a
+ * click that was waiting on the scheduler runtime is still counted when
+ * show() resolves. Page views stay behind attribution capture.
+ */
+export function armJourneyListeners(): void {
+  if (listenersArmed || typeof window === "undefined") return;
+  listenersArmed = true;
+  stopPhoneClicks = bindJourneyPhoneClicks();
+  unsubscribeScheduler = subscribeSchedulerOpened(() => {
+    void collectSchedulerOpened();
+  });
+}
+
+/**
+ * One page view per document load, plus one more when the page returns from
+ * the back/forward cache. Sends after load. Does not block rendering.
+ */
+export function startJourneyTracking(): void {
+  if (typeof window === "undefined") return;
+  armJourneyListeners();
+  if (window.__SRA_JOURNEY_TRACKING__) return;
+  window.__SRA_JOURNEY_TRACKING__ = true;
+
+  const sendPageView = () => {
+    const path = window.location.pathname;
+    const token = beginPageEngagement(path);
+    stopEngagement?.();
+    stopEngagement = watchEngagedSignal(() => {
+      if (signalPageEngaged(token) !== "follow-up") return;
+      const eventId = pageViewEventIdFor(token);
+      if (!eventId) return;
+      void collectMeasurementEvent(
+        buildMeasurementEvent("page_view", {
+          currentPath: path,
+          engaged: true,
+          eventId,
+        }),
+      );
+    });
+    void collectPageView();
+  };
+  if (document.readyState === "complete") sendPageView();
+  else window.addEventListener("load", sendPageView, { once: true });
+
+  window.addEventListener("pageshow", (event) => {
+    if (!event.persisted) return;
+    releasePageViewForRestore();
+    sendPageView();
+  });
+}
+
+export function resetJourneyTrackingForTests(): void {
+  stopPhoneClicks?.();
+  stopPhoneClicks = undefined;
+  unsubscribeScheduler?.();
+  unsubscribeScheduler = undefined;
+  stopEngagement?.();
+  stopEngagement = undefined;
+  listenersArmed = false;
+  if (typeof window !== "undefined") delete window.__SRA_JOURNEY_TRACKING__;
+  releasePageViewForRestore();
+}
+
+declare global {
+  interface Window {
+    __SRA_JOURNEY_TRACKING__?: boolean;
+    /** Test-only. Local preview does not send unless this is true. */
+    __SRA_JOURNEY_SEND_LOCAL__?: boolean;
+  }
+}

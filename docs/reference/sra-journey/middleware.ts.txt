@@ -1,0 +1,290 @@
+/**
+ * First-party visitor and session cookies for journey tracking.
+ * Vendored from FF Split Testing `createWebsiteRuntimeContext` /
+ * `buildSetCookie` / `classifyBot`: default names `ff_vid` and `ff_sid`
+ * only, on canonical HTML GET/HEAD. No rewrite. The only redirect and the only
+ * other cookie (`ff_entry`) belong to ENTRY_REDIRECTS below.
+ */
+
+export const FF_VID_COOKIE = "ff_vid";
+export const FF_SID_COOKIE = "ff_sid";
+
+/** 180 days, matching the website runtime visitor window. */
+export const FF_VID_MAX_AGE_SECONDS = 180 * 24 * 60 * 60;
+/** 30 minutes, rewritten on every eligible HTML request so the window slides. */
+export const FF_SID_MAX_AGE_SECONDS = 30 * 60;
+
+const CONTEXT_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/;
+
+/**
+ * Doc matcher (`api|assets|favicon|scripts`) extended for this site's
+ * asset folders. The function below applies the same skips when the
+ * middleware is invoked directly.
+ */
+export const config = {
+  matcher: [
+    "/((?!api/|_astro/|images/|fonts/|scripts/|documents/|assets/|page-data/|favicon|robots\\.txt|sitemap|llms).*)",
+  ],
+};
+
+const BOT_PATTERNS = [
+  /googlebot/i,
+  /bingbot/i,
+  /slurp/i,
+  /duckduckbot/i,
+  /baiduspider/i,
+  /yandexbot/i,
+  /facebookexternalhit/i,
+  /twitterbot/i,
+  /linkedinbot/i,
+  /slackbot/i,
+  /discordbot/i,
+  /whatsapp/i,
+  /telegrambot/i,
+  /applebot/i,
+  /semrushbot/i,
+  /ahrefsbot/i,
+  /mj12bot/i,
+  /dotbot/i,
+  /petalbot/i,
+  /bytespider/i,
+  /headlesschrome/i,
+  /lighthouse/i,
+  /chrome-lighthouse/i,
+  /gtmetrix/i,
+  /pingdom/i,
+  /uptimerobot/i,
+  /statuscake/i,
+  /screaming frog/i,
+  /siteauditbot/i,
+  /ahrefssiteaudit/i,
+  /google-inspectiontool/i,
+  /bingpreview/i,
+  /phantomjs/i,
+  /puppeteer/i,
+  /playwright/i,
+  /curl\//i,
+  /wget\//i,
+  /python-requests/i,
+  /go-http-client/i,
+  /java\//i,
+  /libwww-perl/i,
+  /scrapy/i,
+  // Whole word only. A trailing `/bot\b/` also matches CUBOT handsets.
+  /\bbot\b/i,
+  /crawler/i,
+  /spider/i,
+  /preview/i,
+];
+
+const STATIC_EXTENSIONS = [
+  ".js",
+  ".css",
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".svg",
+  ".webp",
+  ".ico",
+  ".woff",
+  ".woff2",
+  ".ttf",
+  ".map",
+  ".avif",
+  ".xml",
+  ".txt",
+  ".json",
+  ".pdf",
+  ".mjs",
+  ".html",
+  ".webmanifest",
+];
+
+function continueWithoutChange(setCookies: readonly string[] = []): Response {
+  const headers = new Headers();
+  headers.set("x-middleware-next", "1");
+  for (const cookie of setCookies) headers.append("set-cookie", cookie);
+  return new Response(null, { headers });
+}
+
+function collapsePath(pathname: string): string {
+  if (!pathname) return "/";
+  const withSlash = pathname.startsWith("/") ? pathname : `/${pathname}`;
+  return withSlash.replace(/\/{2,}/g, "/");
+}
+
+function decodeBoundedPath(path: string): string | null {
+  let decoded: string;
+  try {
+    decoded = decodeURIComponent(path);
+  } catch {
+    return null;
+  }
+  for (let depth = 1; depth < 3 && /%[0-9a-f]{2}/i.test(decoded); depth += 1) {
+    try {
+      const next = decodeURIComponent(decoded);
+      if (next === decoded) break;
+      decoded = next;
+    } catch {
+      return null;
+    }
+  }
+  if (/%[0-9a-f]{2}/i.test(decoded)) return null;
+  return collapsePath(decoded);
+}
+
+function isIgnoredCollapsedPath(path: string): boolean {
+  const lower = path.toLowerCase();
+  if (lower === "/api" || lower.startsWith("/api/")) return true;
+  if (lower === "/_astro" || lower.startsWith("/_astro/")) return true;
+  if (lower === "/images" || lower.startsWith("/images/")) return true;
+  if (lower === "/fonts" || lower.startsWith("/fonts/")) return true;
+  if (lower === "/scripts" || lower.startsWith("/scripts/")) return true;
+  if (lower === "/documents" || lower.startsWith("/documents/")) return true;
+  if (lower === "/assets" || lower.startsWith("/assets/")) return true;
+  if (lower === "/page-data" || lower.startsWith("/page-data/")) return true;
+  if (lower === "/favicon.ico" || lower.startsWith("/favicon")) return true;
+  if (lower === "/robots.txt") return true;
+  if (/^\/sitemap.*\.xml$/.test(lower)) return true;
+  if (/^\/llms.*\.txt$/.test(lower)) return true;
+  return STATIC_EXTENSIONS.some((extension) => lower.endsWith(extension));
+}
+
+/** Canonical public HTML only: a trailing-slash document, not an asset. */
+export function isCanonicalHtmlPath(pathname: string): boolean {
+  const path = collapsePath(pathname);
+  if (isIgnoredCollapsedPath(path)) return false;
+  const decoded = decodeBoundedPath(path);
+  if (decoded === null || isIgnoredCollapsedPath(decoded)) return false;
+  return path === "/" || path.endsWith("/");
+}
+
+function isBotUserAgent(userAgent: string | null): boolean {
+  const ua = userAgent?.trim() ?? "";
+  if (!ua) return false;
+  return BOT_PATTERNS.some((pattern) => pattern.test(ua));
+}
+
+function parseCookies(header: string | null): Map<string, string[]> {
+  const result = new Map<string, string[]>();
+  if (!header) return result;
+  for (const part of header.split(";")) {
+    const separator = part.indexOf("=");
+    if (separator < 0) continue;
+    const key = part.slice(0, separator).trim();
+    const raw = part.slice(separator + 1).trim();
+    if (!key) continue;
+    let value = raw;
+    try {
+      value = decodeURIComponent(raw);
+    } catch {
+      // Keep the raw value so validation can reject it.
+    }
+    result.set(key, [...(result.get(key) ?? []), value]);
+  }
+  return result;
+}
+
+function validContextId(value: string | undefined): string | null {
+  return value && CONTEXT_ID_PATTERN.test(value) ? value : null;
+}
+
+function readPrimaryCookie(cookies: Map<string, string[]>, name: string): string | null {
+  if (!cookies.has(name)) return null;
+  const values = cookies.get(name) ?? [];
+  if (values.length !== 1) return null;
+  return validContextId(values[0]);
+}
+
+function buildSetCookie(name: string, value: string, maxAge: number): string {
+  return [
+    `${name}=${encodeURIComponent(value)}`,
+    "Path=/",
+    `Max-Age=${maxAge}`,
+    "SameSite=Lax",
+    "Secure",
+  ].join("; ");
+}
+
+function newIdentityId(): string | null {
+  try {
+    const id = globalThis.crypto?.randomUUID?.();
+    return validContextId(id ?? undefined);
+  } catch {
+    return null;
+  }
+}
+
+function isPrefetch(request: Request): boolean {
+  const purpose = `${request.headers.get("purpose") ?? ""} ${request.headers.get("sec-purpose") ?? ""}`;
+  return /prefetch|prerender/i.test(purpose);
+}
+
+/**
+ * Entry redirects: exact, case-sensitive paths that 308 to a canonical page.
+ * Humans also get the `ff_entry` cookie naming where they came in. Keys are the
+ * no-slash form; the trailing-slash variant is handled too. To add another
+ * entry, add one line here and to MIDDLEWARE_OWNED_REDIRECTS in
+ * scripts/lib/legacy-bulk-redirects.mjs (a test keeps the two in step).
+ */
+export const FF_ENTRY_COOKIE = "ff_entry";
+export const FF_ENTRY_MAX_AGE_SECONDS = 30 * 60;
+export const ENTRY_REDIRECTS: Readonly<Record<string, { destination: string; entry: string }>> = {
+  "/Springfield": { destination: "/springfield/", entry: "gbp-springfield" },
+};
+
+function entryRedirectFor(pathname: string) {
+  const key = pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
+  return Object.prototype.hasOwnProperty.call(ENTRY_REDIRECTS, key) ? ENTRY_REDIRECTS[key] : null;
+}
+
+function entryRedirect(
+  request: Request,
+  url: URL,
+  rule: { destination: string; entry: string },
+): Response {
+  const method = request.method.toUpperCase();
+  const headers = new Headers({
+    location: `${rule.destination}${url.search}`,
+    "cache-control": "private, no-store",
+  });
+  const human =
+    (method === "GET" || method === "HEAD") &&
+    !isPrefetch(request) &&
+    !isBotUserAgent(request.headers.get("user-agent"));
+  if (human) {
+    headers.append(
+      "set-cookie",
+      buildSetCookie(FF_ENTRY_COOKIE, rule.entry, FF_ENTRY_MAX_AGE_SECONDS),
+    );
+  }
+  return new Response(null, { status: 308, headers });
+}
+
+export default function middleware(request: Request): Response {
+  const url = new URL(request.url);
+  const rule = entryRedirectFor(url.pathname);
+  if (rule) return entryRedirect(request, url, rule);
+
+  const method = request.method.toUpperCase();
+  if (method !== "GET" && method !== "HEAD") return continueWithoutChange();
+
+  if (!isCanonicalHtmlPath(url.pathname)) return continueWithoutChange();
+  if (isPrefetch(request)) return continueWithoutChange();
+  if (isBotUserAgent(request.headers.get("user-agent"))) return continueWithoutChange();
+
+  const cookies = parseCookies(request.headers.get("cookie"));
+  const existingVisitor = readPrimaryCookie(cookies, FF_VID_COOKIE);
+  const existingSession = readPrimaryCookie(cookies, FF_SID_COOKIE);
+  const visitorId = existingVisitor ?? newIdentityId();
+  const sessionId = existingSession ?? newIdentityId();
+  if (!visitorId || !sessionId) return continueWithoutChange();
+
+  const setCookies: string[] = [];
+  if (!existingVisitor) {
+    setCookies.push(buildSetCookie(FF_VID_COOKIE, visitorId, FF_VID_MAX_AGE_SECONDS));
+  }
+  setCookies.push(buildSetCookie(FF_SID_COOKIE, sessionId, FF_SID_MAX_AGE_SECONDS));
+  return continueWithoutChange(setCookies);
+}

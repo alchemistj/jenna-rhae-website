@@ -1,0 +1,199 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { test } from "node:test";
+import {
+  ATTRIBUTION_INGEST_PATH,
+  buildAttributionVisitDedupeKey,
+  buildAttributionVisitPayload,
+} from "../../src/lib/attribution/collector.ts";
+import { sanitizeAttributionSnapshot } from "../../src/lib/attribution/allowlist.ts";
+
+test("paid-click payload contains site, click, landing, and anonymous context", () => {
+  const snapshot = sanitizeAttributionSnapshot({
+    landing_page: "/springfield/roof-replacement/",
+    gclid: "ff-test-google-123",
+    utm_source: "google",
+    utm_medium: "cpc",
+    visitor_id: "visitor-12345678",
+    session_id: "session-12345678",
+    captured_at: "2026-08-26T12:00:00Z",
+    first_touch: {
+      landing_page: "/springfield/roof-replacement/",
+      gclid: "ff-test-google-123",
+      captured_at: "2026-08-26T12:00:00Z",
+    },
+  });
+  const payload = buildAttributionVisitPayload(
+    snapshot,
+    "/springfield/roof-replacement/",
+    "sra-test-event",
+  );
+  assert.equal(payload.siteKey, "sra-roofing-website");
+  assert.equal(payload.landingPath, "/springfield/roof-replacement/");
+  assert.equal(payload.gclid, "ff-test-google-123");
+  assert.equal(payload.visitorId, "visitor-12345678");
+  assert.equal(payload.firstTouch?.landingPage, "/springfield/roof-replacement/");
+  assert.doesNotMatch(JSON.stringify(payload), /SUPABASE|service.role|secret/i);
+});
+
+test("event-level fields contain only identifiers from the current paid landing", () => {
+  const snapshot = sanitizeAttributionSnapshot({
+    // Top-level storage remains cumulative for later lead correlation.
+    landing_page: "/springfield/roof-replacement/",
+    gclid: "google-first-click",
+    utm_source: "google",
+    utm_medium: "cpc",
+    visitor_id: "visitor-12345678",
+    session_id: "session-12345678",
+    captured_at: "2026-08-27T12:00:00Z",
+    first_touch: {
+      landing_page: "/springfield/roof-replacement/",
+      gclid: "google-first-click",
+      utm_source: "google",
+      utm_medium: "cpc",
+      captured_at: "2026-08-27T12:00:00Z",
+    },
+    latest_touch: {
+      landing_page: "/springfield/roof-repair/",
+      msclkid: "microsoft-latest-click",
+      utm_source: "bing",
+      utm_medium: "cpc",
+      captured_at: "2026-08-27T13:00:00Z",
+    },
+  });
+
+  const payload = buildAttributionVisitPayload(
+    snapshot,
+    "/springfield/roof-repair/",
+    "sra-touch-regression",
+  );
+
+  assert.equal(payload.gclid, null);
+  assert.equal(payload.msclkid, "microsoft-latest-click");
+  assert.equal(payload.utmSource, "bing");
+  assert.equal(payload.landingPath, "/springfield/roof-repair/");
+  assert.equal(payload.occurredAt, "2026-08-27T13:00:00Z");
+  assert.equal(payload.firstTouch?.gclid, "google-first-click");
+  assert.equal(payload.latestTouch?.msclkid, "microsoft-latest-click");
+  assert.equal(payload.isFirstTouch, false);
+});
+
+test("dedupe is based on the current touch, not cumulative stored identifiers", () => {
+  const withOldGoogleA = sanitizeAttributionSnapshot({
+    ...snapshotForTest(),
+    gclid: "old-google-a",
+    latest_touch: {
+      landing_page: "/springfield/roof-repair/",
+      msclkid: "current-microsoft",
+      captured_at: "2026-08-27T13:00:00Z",
+    },
+  });
+  const withOldGoogleB = sanitizeAttributionSnapshot({
+    ...snapshotForTest(),
+    gclid: "old-google-b",
+    latest_touch: {
+      landing_page: "/springfield/roof-repair/",
+      msclkid: "current-microsoft",
+      captured_at: "2026-08-27T13:05:00Z",
+    },
+  });
+  const nextMicrosoftClick = sanitizeAttributionSnapshot({
+    ...withOldGoogleB,
+    latest_touch: {
+      landing_page: "/springfield/roof-repair/",
+      msclkid: "next-microsoft",
+      captured_at: "2026-08-27T13:10:00Z",
+    },
+  });
+
+  assert.equal(
+    buildAttributionVisitDedupeKey(withOldGoogleA, "/springfield/roof-repair/"),
+    buildAttributionVisitDedupeKey(withOldGoogleB, "/springfield/roof-repair/"),
+  );
+  assert.notEqual(
+    buildAttributionVisitDedupeKey(withOldGoogleB, "/springfield/roof-repair/"),
+    buildAttributionVisitDedupeKey(nextMicrosoftClick, "/springfield/roof-repair/"),
+  );
+});
+
+test("first-touch flag requires touch identity, not timestamp equality alone", () => {
+  const snapshot = sanitizeAttributionSnapshot({
+    ...snapshotForTest(),
+    first_touch: {
+      landing_page: "/springfield/roof-replacement/",
+      gclid: "google-first",
+      captured_at: "2026-08-27T12:00:00Z",
+    },
+    latest_touch: {
+      landing_page: "/springfield/roof-repair/",
+      msclkid: "microsoft-latest",
+      captured_at: "2026-08-27T12:00:00Z",
+    },
+  });
+
+  const payload = buildAttributionVisitPayload(
+    snapshot,
+    "/springfield/roof-repair/",
+    "sra-touch-identity",
+  );
+  assert.equal(payload.isFirstTouch, false);
+});
+
+test("reloads dedupe the same click while a new click remains distinct", () => {
+  const reload = sanitizeAttributionSnapshot({
+    ...snapshotForTest(),
+    captured_at: "2026-08-27T12:00:00Z",
+  });
+  const newClick = sanitizeAttributionSnapshot({
+    ...reload,
+    gclid: "ff-test-google-456",
+  });
+  assert.equal(
+    buildAttributionVisitDedupeKey(reload, "/springfield/roof-replacement/"),
+    buildAttributionVisitDedupeKey(snapshotForTest(), "/springfield/roof-replacement/"),
+  );
+  assert.notEqual(
+    buildAttributionVisitDedupeKey(reload, "/springfield/roof-replacement/"),
+    buildAttributionVisitDedupeKey(newClick, "/springfield/roof-replacement/"),
+  );
+});
+
+function snapshotForTest() {
+  return sanitizeAttributionSnapshot({
+    landing_page: "/springfield/roof-replacement/",
+    gclid: "ff-test-google-123",
+    visitor_id: "visitor-12345678",
+    session_id: "session-12345678",
+    captured_at: "2026-08-26T12:00:00Z",
+  });
+}
+
+
+test("paid-click browser collection stays on the SRA origin", () => {
+  assert.equal(ATTRIBUTION_INGEST_PATH, "/api/site-context/");
+  assert.equal(
+    new URL(ATTRIBUTION_INGEST_PATH, "https://www.sraroofs.com").origin,
+    "https://www.sraroofs.com",
+  );
+
+  const collectorSource = readFileSync(
+    new URL("../../src/lib/attribution/collector.ts", import.meta.url),
+    "utf8",
+  );
+  assert.doesNotMatch(collectorSource, /VITE_ATTRIBUTION_INGEST_URL/);
+  assert.doesNotMatch(collectorSource, /ff-reports-analytics\.vercel\.app/);
+});
+
+test("Vercel forwards the neutral collector path to FF Reports", () => {
+  const config = JSON.parse(
+    readFileSync(new URL("../../vercel.json", import.meta.url), "utf8"),
+  ) as { rewrites?: Array<{ source?: string; destination?: string }> };
+  assert.ok(
+    config.rewrites?.some(
+      (rewrite) =>
+        rewrite.source === "/api/site-context/" &&
+        rewrite.destination ===
+          "https://ff-reports-analytics.vercel.app/api/attribution/visit",
+    ),
+  );
+});
