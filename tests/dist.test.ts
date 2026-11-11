@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { BOOKING_EMBED_HEIGHT, BOOKING_EMBED_HEIGHT_MOBILE, BOOKING_FRAME_ID, FORM_EMBED_URL, QUIZ_URL } from "../src/lib/site";
 import { DIST, walk } from "./helpers";
 
 const files = walk(DIST);
@@ -88,6 +89,29 @@ describe("images and hosts", () => {
     expect(home).toContain('data-src="https://link.springboardcrm.com/widget/booking/5JgMZbYOgzpSpNXbNZCA"');
     expect(home).toMatch(/<noscript>\s*<p[^>]*><a [^>]*href="https:\/\/link\.springboardcrm\.com\/widget\/booking\/5JgMZbYOgzpSpNXbNZCA"/);
     expect(home).not.toMatch(/<iframe/i);
+    expect(home).not.toContain("form_embed.js");
+    expect(home).toContain('data-autosize="true"');
+    expect(home).toContain(`data-frame-id="${BOOKING_FRAME_ID}"`);
+    expect(home).toContain("deferred-embed-bare");
+    expect(home).toContain(`--embed-h: ${BOOKING_EMBED_HEIGHT}px`);
+    expect(home).toContain(`--embed-h-mobile: ${BOOKING_EMBED_HEIGHT_MOBILE}px`);
+  });
+
+  it("ships the booking resizer in the deferred loader only, never in server HTML", () => {
+    for (const file of files.filter((f) => f.endsWith(".html"))) {
+      const html = read(file);
+      expect(html, path.relative(DIST, file)).not.toContain("form_embed.js");
+      expect(html, path.relative(DIST, file)).not.toMatch(/<iframe/i);
+      expect(html, path.relative(DIST, file)).not.toMatch(/<script[^>]+src="[^"]*springboardcrm/i);
+    }
+    const js = files.filter((f) => f.endsWith(".js")).map(read).join("\n");
+    expect(js).toContain(FORM_EMBED_URL);
+    const quizPage = read(path.join(DIST, "free-trauma-test", "index.html"));
+    const quiz = quizPage.slice(quizPage.indexOf('id="trauma-quiz"'), quizPage.indexOf('id="book"'));
+    expect(quiz).toContain('class="deferred-embed"');
+    expect(quiz).not.toContain("deferred-embed-bare");
+    expect(quiz).not.toContain("data-autosize");
+    expect(quiz).toContain(`data-src="${QUIZ_URL}"`);
   });
 });
 

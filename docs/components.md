@@ -26,8 +26,8 @@ Need a new section type? Add it to `Block` in `types.ts` and a `case` in `PageBl
 - `Icon.astro` props: `name` (check, mail, map-pin, monitor, menu, close), `size?`, `class?`.
 
 ## Embeds and form
-- `DeferredIframe.astro` props: `src`, `title`, `noscriptLabel`, `height?`, `mobileHeight?`, `id?`. No iframe in server HTML; loads on first interaction or when 10% visible. Use it for the LeadConnector quiz: `QUIZ_URL` in `src/lib/site.ts`.
-- `BookingEmbed.astro` (no props): section with id `book`, heading and iframe from `data/site.ts` `booking`.
+- `DeferredIframe.astro` props: `src`, `title`, `noscriptLabel`, `height?`, `mobileHeight?`, `id?`, `bare?`, `autosize?`, `frameId?`. No iframe in server HTML; loads on first interaction or when 10% visible. `bare` drops the border and background and leaves the iframe in normal flow. `autosize` loads SpringboardCRM's `form_embed.js` with that iframe (not on page load) and sets `frameId`. Use the plain embed for the LeadConnector quiz: `QUIZ_URL` in `src/lib/site.ts`.
+- `BookingEmbed.astro` (no props): section with id `book`, heading and iframe from `data/site.ts` `booking`. The calendar is a bare autosized iframe. Its reserved height is the widget's resized height at each breakpoint.
 - `LeadForm.astro` props: `form: FormCopy`, `bookHref`. Logic in `src/lib/leadSubmit.ts` (tests in `tests/leadSubmit.test.ts`).
 
 ## Libraries
