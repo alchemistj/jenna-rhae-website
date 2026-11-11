@@ -105,6 +105,7 @@ describe("every built page", () => {
   it("has no third-party iframe or analytics script in the server HTML", () => {
     for (const { path, html } of all) {
       expect(html, path).not.toMatch(/<iframe/i);
+      expect(html, path).not.toContain("form_embed.js");
       expect(html, path).not.toMatch(/<script[^>]+src="[^"]*(googletagmanager|springboardcrm|leadconnector)/i);
     }
   });

@@ -4,7 +4,13 @@
  * page that has this section links to #book. Place it high on the page, right after the opening section.
  */
 import { booking } from "../data/site";
-import { BOOKING_ANCHOR, BOOKING_URL } from "../lib/site";
+import {
+  BOOKING_ANCHOR,
+  BOOKING_EMBED_HEIGHT,
+  BOOKING_EMBED_HEIGHT_MOBILE,
+  BOOKING_FRAME_ID,
+  BOOKING_URL,
+} from "../lib/site";
 import Section from "./Section.astro";
 import DeferredIframe from "./DeferredIframe.astro";
 ---
@@ -17,8 +23,11 @@ import DeferredIframe from "./DeferredIframe.astro";
       src={BOOKING_URL}
       title={booking.iframeTitle}
       noscriptLabel={booking.noscript}
-      height={820}
-      mobileHeight={900}
+      height={BOOKING_EMBED_HEIGHT}
+      mobileHeight={BOOKING_EMBED_HEIGHT_MOBILE}
+      bare
+      autosize
+      frameId={BOOKING_FRAME_ID}
     />
   </div>
 </Section>

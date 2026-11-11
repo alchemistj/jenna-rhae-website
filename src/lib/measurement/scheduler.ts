@@ -27,6 +27,21 @@ function isIframe(target: EventTarget | null): target is HTMLIFrameElement {
 }
 
 /**
+ * `load` does not replay. The booking iframe can finish before journey tracking
+ * starts, and by then the resizer has written its height. Resource timing covers
+ * a frame that loaded without an inline height yet.
+ */
+function frameAlreadyLoaded(frame: HTMLIFrameElement): boolean {
+  if (frame.dataset?.jrLoaded === "1") return true;
+  const inlineHeight = frame.style?.height ?? "";
+  if (Number.parseFloat(inlineHeight) > 0) return true;
+  if (typeof performance === "undefined" || !frame.src) return false;
+  return performance.getEntriesByName(frame.src).some((entry) => {
+    return entry.entryType === "resource" && (entry as PerformanceResourceTiming).responseEnd > 0;
+  });
+}
+
+/**
  * Once per call, after the SpringboardCRM iframe inside #book has loaded and
  * the section is at least half visible. Returns a stop function.
  */
@@ -72,7 +87,10 @@ export function watchSchedulerOpened(onOpened: () => void = () => {
 
   root.addEventListener("load", onLoad, true);
   const existing = root.querySelector("iframe");
-  if (existing?.dataset.jrLoaded === "1") beginVisibilityWatch();
+  if (isIframe(existing) && frameAlreadyLoaded(existing)) {
+    existing.dataset.jrLoaded = "1";
+    beginVisibilityWatch();
+  }
 
   function cleanup() {
     root.removeEventListener("load", onLoad, true);

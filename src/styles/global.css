@@ -387,6 +387,27 @@
     border: 0;
   }
 
+  /* Booking calendar: the widget has its own card. Height comes from the resizer, not from us. */
+  .deferred-embed-bare {
+    background-color: transparent;
+    border: 0;
+  }
+
+  .deferred-embed-bare iframe {
+    position: static;
+    inset: auto;
+    display: block;
+    width: 100%;
+    height: auto;
+    border: none;
+    overflow: hidden;
+  }
+
+  .deferred-embed [data-embed-slot] {
+    position: absolute;
+    inset: 0;
+  }
+
   @media (min-width: 768px) {
     .deferred-embed {
       min-height: var(--embed-h, 820px);

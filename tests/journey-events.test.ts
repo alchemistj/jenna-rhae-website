@@ -366,6 +366,52 @@ describe("journey events", () => {
     if (previous) vi.stubGlobal("IntersectionObserver", previous);
   });
 
+  it("starts the visibility watch when the booking iframe already has a resized height", () => {
+    installBrowser();
+    const previous = globalThis.IntersectionObserver;
+    let observed = false;
+    class FakeObserver {
+      constructor(private readonly callback: (entries: unknown[]) => void) {}
+      observe() {
+        observed = true;
+        this.callback([
+          {
+            isIntersecting: true,
+            intersectionRatio: 0.8,
+            intersectionRect: { height: 700 },
+            rootBounds: { height: 900 },
+          },
+        ]);
+      }
+      disconnect() {}
+    }
+    vi.stubGlobal("IntersectionObserver", FakeObserver);
+    const iframe = { tagName: "IFRAME", dataset: {} as Record<string, string>, style: { height: "1008px" }, src: "" };
+    const root = {
+      addEventListener() {},
+      removeEventListener() {},
+      querySelector() {
+        return iframe;
+      },
+      contains() {
+        return false;
+      },
+    };
+    vi.stubGlobal("document", {
+      ...(globalThis.document as object),
+      getElementById(id: string) {
+        return id === "book" ? root : null;
+      },
+    });
+    const calls: string[] = [];
+    const stop = watchSchedulerOpened(() => calls.push("open"));
+    expect(observed).toBe(true);
+    expect(iframe.dataset.jrLoaded).toBe("1");
+    expect(calls).toEqual(["open"]);
+    stop();
+    if (previous) vi.stubGlobal("IntersectionObserver", previous);
+  });
+
   it("sends one page view from startJourneyTracking and ignores a second start", async () => {
     installBrowser("/contact/");
     startJourneyTracking();
