@@ -86,7 +86,8 @@ let blogPhotos = 0;
               {block.intro && <p class="soft mx-auto mb-12 max-w-2xl text-center">{block.intro}</p>}
               <div class="grid gap-5 md:grid-cols-2">
                 {block.cards.map((card) => {
-                  const linked = card.href !== undefined && isPublished(card.href);
+                  const linked =
+                    card.href !== undefined && (card.href.startsWith("https://") || isPublished(card.href));
                   const inner = (
                     <>
                       <h3 class="mb-2 font-display text-xl font-bold">{card.title}</h3>

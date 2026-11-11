@@ -49,6 +49,8 @@ const page = {
         {
           title: "From Survival to Stability Group Coaching Cohort",
           body: "Twelve week group coaching online and in-person in Kansas City for women ready to understand their nervous systems and find new ways of healing and hope.",
+          href: "https://freedom.jennarhae.com/stability",
+          linkLabel: "Learn More →",
         },
         {
           title: "Christian Life Coaching in Kansas City, MO",
