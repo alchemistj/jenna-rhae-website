@@ -37,3 +37,6 @@ All local, in `src/assets`, optimized by Astro. Never hotlink `jennarhae.com/wp-
 
 ## Testimonials
 The mockup's placeholder testimonial cards ("pending client approval") don't ship. Drop that section unless WordPress has real reviews from Jenna's clients (Thrive Ovation): if it does, use those word for word and note them in the PR.
+
+## Merging (Josh, Nov 11, 2026)
+While the site is on staging, Claude may merge finished, checked PRs into the main build branch (`claude/busy-gauss-oku7rw`) without asking. Still ask Josh first for: merging into `main` (launch), DNS, anything that touches jennarhae.com, and Central Forms production (SQL, tokens, activating the destination).
