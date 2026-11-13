@@ -1,0 +1,30 @@
+import { collectClickToCall } from "./collect";
+
+/**
+ * One journey event per tel: activation. This listener is separate from the
+ * GTM click handler and does not change phone-number or DNI behavior.
+ */
+export function bindJourneyPhoneClicks(): () => void {
+  if (typeof document === "undefined") return () => undefined;
+
+  const onClick = (event: Event) => {
+    const raw = event.target;
+    const target =
+      raw && typeof (raw as Element).closest === "function"
+        ? (raw as Element)
+        : ((raw as Node | null)?.parentElement ?? null);
+    if (!target || typeof target.closest !== "function") return;
+    const link = target.closest("a");
+    if (!link) return;
+    const href = link.getAttribute("href")?.trim() || "";
+    if (!/^tel:/i.test(href)) return;
+
+    const marked = link.getAttribute("data-ff-phone-location")?.trim() || "";
+    const ctaLocation =
+      marked || (link.closest(".blog-article-body") ? "blog-article-body" : null);
+    void collectClickToCall({ ctaLocation });
+  };
+
+  document.addEventListener("click", onClick);
+  return () => document.removeEventListener("click", onClick);
+}

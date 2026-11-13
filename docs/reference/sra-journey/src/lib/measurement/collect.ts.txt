@@ -1,0 +1,457 @@
+import { getStoredAttribution } from "../attribution/storage";
+import {
+  JOURNEY_ENGAGED_ENABLED,
+  MEASUREMENT_CONTRACT_VERSION,
+  MEASUREMENT_INGEST_PATH,
+  MEASUREMENT_SITE_KEY,
+  SESSION_CHANNEL_KEY,
+  contextFromPath,
+  conversionKindForEvent,
+  deriveSessionChannel,
+  FF_ENTRY_COOKIE,
+  hasPiiLeak,
+  measurementEnvironment,
+  parseStoredSessionChannel,
+  pathOnly,
+  referrerWithoutQuery,
+  serializeStoredSessionChannel,
+  stripUnknownAndPii,
+  validEntry,
+  type MeasurementChannel,
+  type MeasurementEnvironment,
+  type MeasurementEvent,
+  type MeasurementEventName,
+} from "./contract";
+import { journeyAutomationForPayload } from "./automation";
+import { readCookieValue, resolveJourneyIds } from "./identity";
+
+const OPAQUE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/;
+const EVENT_SENT_PREFIX = "sra_measure_event_v1:";
+
+export type CollectInit = {
+  endpoint?: string;
+  fetchImpl?: typeof fetch;
+  sendBeacon?: (url: string, data?: BodyInit | null) => boolean;
+  now?: () => string;
+  environment?: MeasurementEnvironment;
+  currentHost?: string;
+};
+
+export type CollectResult =
+  | { ok: true; sent: boolean; duplicate?: boolean; skipped?: string }
+  | { ok: false; sent: false; error: string };
+
+let pageViewSentForLoad = false;
+
+type PageEngagement = {
+  token: number;
+  path: string;
+  pending: boolean;
+  sent: boolean;
+  pageViewSent: boolean;
+  /** eventId of this page's page_view, reused by the engaged follow-up. */
+  pageViewEventId: string | null;
+};
+
+let pageEngagementToken = 0;
+let pageEngagement: PageEngagement | null = null;
+
+export function beginPageEngagement(path: string): number {
+  pageEngagementToken += 1;
+  pageEngagement = {
+    token: pageEngagementToken,
+    path,
+    pending: false,
+    sent: false,
+    pageViewSent: false,
+    pageViewEventId: null,
+  };
+  return pageEngagement.token;
+}
+
+/** The engaged follow-up reuses this page view's eventId. */
+export function pageViewEventIdFor(token: number): string | null {
+  if (pageEngagement?.token !== token) return null;
+  return pageEngagement.pageViewEventId;
+}
+
+/**
+ * Mark this page view engaged. Returns "follow-up" when the page view already
+ * left without the flag, so the caller sends one follow-up event.
+ */
+export function signalPageEngaged(token: number): "follow-up" | "pending" | "already" {
+  if (!pageEngagement || pageEngagement.token !== token || pageEngagement.sent) {
+    return "already";
+  }
+  if (!pageEngagement.pageViewSent) {
+    pageEngagement.pending = true;
+    return "pending";
+  }
+  pageEngagement.sent = true;
+  pageEngagement.pending = false;
+  return "follow-up";
+}
+
+function consumeEngaged(path: string): true | undefined {
+  if (!pageEngagement || pageEngagement.path !== path) return undefined;
+  if (pageEngagement.pending && !pageEngagement.sent) {
+    pageEngagement.sent = true;
+    pageEngagement.pending = false;
+    return true;
+  }
+  return undefined;
+}
+
+function claimExplicitEngaged(path: string): void {
+  if (!pageEngagement || pageEngagement.path !== path) return;
+  pageEngagement.sent = true;
+  pageEngagement.pending = false;
+}
+
+function eventSentKey(eventId: string, engaged: boolean): string {
+  return `${EVENT_SENT_PREFIX}${eventId}${engaged ? ":engaged" : ""}`;
+}
+
+function randomEventId(): string {
+  try {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return `sra-${crypto.randomUUID()}`;
+    }
+  } catch {
+    // Older browsers fall through to an opaque id.
+  }
+  return `sra-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+function sessionStorageOrUndefined(): Storage | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    return window.sessionStorage;
+  } catch {
+    return undefined;
+  }
+}
+
+function textOrNull(value: string | null | undefined): string | null {
+  const trimmed = value?.trim() || "";
+  return trimmed ? trimmed : null;
+}
+
+function opaqueId(value: string | null | undefined): string | null {
+  const trimmed = value?.trim() || "";
+  if (!trimmed || !OPAQUE_ID_PATTERN.test(trimmed)) return null;
+  return trimmed.slice(0, 128);
+}
+
+export function resolveSessionChannel(
+  input: {
+    gclid?: string | null;
+    gbraid?: string | null;
+    wbraid?: string | null;
+    msclkid?: string | null;
+    utmMedium?: string | null;
+    referrer?: string | null;
+    currentHost?: string | null;
+    /** The `ff_sid` this channel belongs to. A different id is a new session. */
+    sessionId?: string | null;
+  },
+  storage: Storage | undefined = sessionStorageOrUndefined(),
+): MeasurementChannel {
+  const sessionId = input.sessionId?.trim() || null;
+  try {
+    const stored = parseStoredSessionChannel(storage?.getItem(SESSION_CHANNEL_KEY) ?? null, sessionId);
+    if (stored) return stored;
+  } catch {
+    // Compute a fresh channel when storage is blocked.
+  }
+  const channel = deriveSessionChannel(input);
+  if (!sessionId) return channel;
+  try {
+    storage?.setItem(SESSION_CHANNEL_KEY, serializeStoredSessionChannel(sessionId, channel));
+  } catch {
+    // The event still carries the channel for this call.
+  }
+  return channel;
+}
+
+function deviceClass(): MeasurementEvent["device"] {
+  if (typeof window === "undefined") return "unknown";
+  const width = window.innerWidth;
+  if (!Number.isFinite(width) || width <= 0) return "unknown";
+  return width < 768 ? "mobile" : "desktop";
+}
+
+function domSlug(name: string): string | null {
+  if (typeof document === "undefined" || typeof document.querySelector !== "function") return null;
+  const value = document.querySelector(`[data-sra-${name}]`)?.getAttribute(`data-sra-${name}`);
+  const trimmed = value?.trim().toLowerCase() || "";
+  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(trimmed) ? trimmed : null;
+}
+
+export function buildMeasurementEvent(
+  event: MeasurementEventName,
+  extra: Partial<MeasurementEvent> = {},
+  init: CollectInit = {},
+): MeasurementEvent {
+  const stored = getStoredAttribution();
+  const identity = resolveJourneyIds({
+    visitorId: extra.visitorId ?? stored.visitor_id,
+    sessionId: extra.sessionId ?? stored.session_id,
+  });
+  const currentPath =
+    pathOnly(extra.currentPath) ||
+    pathOnly(typeof window !== "undefined" ? window.location.pathname : "/") ||
+    "/";
+  const pathContext = contextFromPath(currentPath);
+  const gclid = textOrNull(extra.gclid ?? stored.gclid);
+  const gbraid = textOrNull(extra.gbraid ?? stored.gbraid);
+  const wbraid = textOrNull(extra.wbraid ?? stored.wbraid);
+  const msclkid = textOrNull(extra.msclkid ?? stored.msclkid);
+  const utmMedium = textOrNull(extra.utmMedium ?? stored.utm_medium);
+  const referrer = referrerWithoutQuery(extra.referrer ?? stored.referrer);
+  const currentHost =
+    init.currentHost ||
+    (typeof window !== "undefined" ? window.location.hostname : "");
+  const visitorId = identity.visitorId;
+  const sessionId = identity.sessionId;
+  const channel =
+    extra.channel ??
+    resolveSessionChannel(
+      { gclid, gbraid, wbraid, msclkid, utmMedium, referrer, currentHost, sessionId },
+      sessionStorageOrUndefined(),
+    );
+  const clickObserved = Boolean(gclid || gbraid || wbraid || msclkid);
+  // Only a page_view takes a pending engaged mark, so an early tap-to-call
+  // can't carry it away from the page view it belongs to.
+  const engaged =
+    extra.engaged === true || (event === "page_view" && consumeEngaged(currentPath))
+      ? true
+      : undefined;
+  if (extra.engaged === true) claimExplicitEngaged(currentPath);
+  const automation =
+    extra.automation === true || journeyAutomationForPayload() ? (true as const) : undefined;
+
+  const entry = validEntry(
+    extra.entry ??
+      readCookieValue(typeof document !== "undefined" ? document.cookie : null, FF_ENTRY_COOKIE),
+  );
+
+  const built: MeasurementEvent = {
+    contractVersion: MEASUREMENT_CONTRACT_VERSION,
+    siteKey: MEASUREMENT_SITE_KEY,
+    environment: extra.environment ?? init.environment ?? measurementEnvironment(currentHost),
+    event,
+    eventId: opaqueId(extra.eventId) || randomEventId(),
+    occurredAt: extra.occurredAt || (init.now ? init.now() : new Date().toISOString()),
+    visitorId,
+    sessionId,
+    landingPath: pathOnly(extra.landingPath ?? stored.landing_page) || currentPath,
+    currentPath,
+    referrer,
+    utmSource: textOrNull(extra.utmSource ?? stored.utm_source),
+    utmMedium,
+    utmCampaign: textOrNull(extra.utmCampaign ?? stored.utm_campaign),
+    gclid,
+    gbraid,
+    wbraid,
+    msclkid,
+    channel,
+    device: extra.device ?? deviceClass(),
+    citySlug: extra.citySlug ?? domSlug("city-slug") ?? pathContext.citySlug,
+    serviceSlug: extra.serviceSlug ?? domSlug("service-slug") ?? pathContext.serviceSlug,
+    ctaLocation: textOrNull(extra.ctaLocation),
+    formSource: textOrNull(extra.formSource),
+    submissionId: event === "lead_form_success" ? opaqueId(extra.submissionId) : null,
+    conversionKind: extra.conversionKind ?? conversionKindForEvent(event),
+    attributionConfidence:
+      extra.attributionConfidence ?? (clickObserved ? "observed" : "inferred"),
+    ...(engaged ? { engaged: true as const } : {}),
+    ...(automation ? { automation: true as const } : {}),
+    ...(entry ? { entry } : {}),
+  };
+  return built;
+}
+
+function endpointFor(candidate?: string): string {
+  const endpoint = candidate?.trim() || MEASUREMENT_INGEST_PATH;
+  return endpoint.startsWith("/") && !endpoint.startsWith("//")
+    ? endpoint
+    : MEASUREMENT_INGEST_PATH;
+}
+
+function journeyHostname(init: CollectInit): string {
+  const fromInit = init.currentHost?.trim();
+  if (fromInit) return fromInit;
+  if (typeof window !== "undefined") return window.location.hostname;
+  return "";
+}
+
+/** Local preview has no collector. Tests opt in with `__SRA_JOURNEY_SEND_LOCAL__`. */
+export function shouldSkipLocalJourneySend(hostname: string): boolean {
+  const host = hostname.trim().toLowerCase();
+  const local =
+    host === "localhost" || host === "127.0.0.1" || host === "[::1]" || host === "::1";
+  if (!local) return false;
+  if (typeof window === "undefined") return true;
+  return window.__SRA_JOURNEY_SEND_LOCAL__ !== true;
+}
+
+async function postBody(
+  endpoint: string,
+  body: string,
+  init: CollectInit,
+): Promise<boolean> {
+  const nav =
+    typeof window !== "undefined" && window.navigator
+      ? window.navigator
+      : typeof navigator !== "undefined"
+        ? navigator
+        : undefined;
+  const sendBeacon = init.sendBeacon || nav?.sendBeacon?.bind(nav);
+  if (sendBeacon) {
+    try {
+      const payload =
+        typeof Blob !== "undefined"
+          ? new Blob([body], { type: "text/plain;charset=UTF-8" })
+          : body;
+      if (sendBeacon(endpoint, payload)) return true;
+    } catch {
+      // Fall through to fetch.
+    }
+  }
+
+  const fetchImpl = init.fetchImpl || (typeof fetch === "function" ? fetch : undefined);
+  if (!fetchImpl) return false;
+  try {
+    const response = await fetchImpl(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+      keepalive: true,
+    });
+    return response.ok || response.status === 202;
+  } catch {
+    return false;
+  }
+}
+
+export async function collectMeasurementEvent(
+  event: MeasurementEvent,
+  init: CollectInit = {},
+): Promise<CollectResult> {
+  if (shouldSkipLocalJourneySend(journeyHostname(init))) {
+    return { ok: true, sent: false, skipped: "local_development" };
+  }
+  const payload = stripUnknownAndPii(event as unknown as Record<string, unknown>);
+  if (!JOURNEY_ENGAGED_ENABLED) delete payload.engaged;
+  if (hasPiiLeak(payload)) return { ok: true, sent: false, skipped: "pii" };
+  const endpoint = endpointFor(init.endpoint);
+  const storage = sessionStorageOrUndefined();
+  // The engaged follow-up shares its page view's eventId, so dedupe it apart.
+  const sentKey = eventSentKey(event.eventId, payload.engaged === true);
+  try {
+    if (storage?.getItem(sentKey)) return { ok: true, sent: false, duplicate: true };
+  } catch {
+    // Continue without client-side dedupe.
+  }
+  const body = JSON.stringify(payload);
+  let sent = false;
+  try {
+    sent = await postBody(endpoint, body, init);
+  } catch {
+    sent = false;
+  }
+  if (sent) {
+    try {
+      storage?.setItem(sentKey, event.eventId);
+    } catch {
+      // Quota or privacy mode: the event was still sent.
+    }
+    return { ok: true, sent: true };
+  }
+  return { ok: false, sent: false, error: "network_error" };
+}
+
+export async function collectPageView(init: CollectInit = {}): Promise<CollectResult> {
+  const path = pathOnly(typeof window !== "undefined" ? window.location.pathname : "/") || "/";
+  if (pageViewSentForLoad) {
+    if (pageEngagement?.path === path) pageEngagement.pageViewSent = true;
+    return { ok: true, sent: false, duplicate: true };
+  }
+  pageViewSentForLoad = true;
+  if (pageEngagement?.path === path) pageEngagement.pageViewSent = true;
+  const event = buildMeasurementEvent("page_view", { currentPath: path }, init);
+  if (pageEngagement?.path === path) pageEngagement.pageViewEventId = event.eventId;
+  return collectMeasurementEvent(event, init);
+}
+
+export function releasePageViewForRestore(): void {
+  pageViewSentForLoad = false;
+}
+
+export function resetMeasurementForTests(): void {
+  pageViewSentForLoad = false;
+  pageEngagement = null;
+  const storage = sessionStorageOrUndefined();
+  try {
+    storage?.removeItem(SESSION_CHANNEL_KEY);
+    if (storage) {
+      const keys: string[] = [];
+      for (let index = 0; index < storage.length; index += 1) {
+        const key = storage.key(index);
+        if (key?.startsWith(EVENT_SENT_PREFIX)) keys.push(key);
+      }
+      for (const key of keys) storage.removeItem(key);
+    }
+  } catch {
+    // Ignore unavailable session storage.
+  }
+}
+
+export function sentMeasurementBody(event: MeasurementEvent): Record<string, unknown> {
+  const payload = stripUnknownAndPii(event as unknown as Record<string, unknown>);
+  if (!JOURNEY_ENGAGED_ENABLED) delete payload.engaged;
+  return payload;
+}
+
+export function collectClickToCall(
+  extra: { ctaLocation?: string | null } = {},
+  init: CollectInit = {},
+): Promise<CollectResult> {
+  return collectMeasurementEvent(
+    buildMeasurementEvent("click_to_call", { ctaLocation: extra.ctaLocation ?? null }, init),
+    init,
+  );
+}
+
+export function collectSchedulerOpened(init: CollectInit = {}): Promise<CollectResult> {
+  return collectMeasurementEvent(buildMeasurementEvent("scheduler_opened", {}, init), init);
+}
+
+export function collectLeadFormSuccess(
+  extra: {
+    eventId?: string | null;
+    submissionId?: string | null;
+    visitorId?: string | null;
+    sessionId?: string | null;
+    formSource?: string | null;
+    currentPath?: string | null;
+  },
+  init: CollectInit = {},
+): Promise<CollectResult> {
+  return collectMeasurementEvent(
+    buildMeasurementEvent(
+      "lead_form_success",
+      {
+        eventId: extra.eventId || undefined,
+        submissionId: extra.submissionId ?? null,
+        visitorId: extra.visitorId ?? null,
+        sessionId: extra.sessionId ?? null,
+        formSource: extra.formSource ?? null,
+        currentPath: extra.currentPath || undefined,
+      },
+      init,
+    ),
+    init,
+  );
+}

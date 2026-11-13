@@ -1,0 +1,60 @@
+---
+/**
+ * Generic deferred third-party iframe (Rule 10). The server HTML has no <iframe> and no iframe src:
+ * the URL sits in data-src and in a <noscript> link. The script below creates the iframe on the first scroll,
+ * wheel, touchstart, pointerdown or keydown, or when 10% of the box is in the viewport,
+ * whichever is first. The box reserves its height so nothing shifts when the frame loads.
+ * Used by BookingEmbed (SpringboardCRM) and the free trauma test (LeadConnector quiz).
+ *
+ * bare: no border and no background, and the iframe stays in normal flow.
+ * autosize: when this iframe is inserted, load SpringboardCRM's form_embed.js once so it sets the height.
+ */
+interface Props {
+  src: string;
+  title: string;
+  /** Text of the <noscript> fallback link. */
+  noscriptLabel: string;
+  /** Reserved height in px at md and up. */
+  height?: number;
+  /** Reserved height in px below md. */
+  mobileHeight?: number;
+  id?: string;
+  /** Drop our frame. The widget brings its own. */
+  bare?: boolean;
+  /** Size this iframe with SpringboardCRM's resizer, loaded with the iframe. */
+  autosize?: boolean;
+  /** Iframe id: widget id, underscore, number. */
+  frameId?: string;
+}
+const {
+  src,
+  title,
+  noscriptLabel,
+  height = 820,
+  mobileHeight = 900,
+  id,
+  bare = false,
+  autosize = false,
+  frameId,
+} = Astro.props;
+---
+
+<div
+  id={id}
+  class:list={["deferred-embed", bare && "deferred-embed-bare"]}
+  data-deferred-iframe
+  data-src={src}
+  data-title={title}
+  data-autosize={autosize ? "true" : undefined}
+  data-frame-id={frameId}
+  style={`--embed-h: ${height}px; --embed-h-mobile: ${mobileHeight}px`}
+>
+  <noscript>
+    <p class="embed-fallback"><a class="link-accent underline" href={src} rel="noopener noreferrer">{noscriptLabel}</a></p>
+  </noscript>
+</div>
+
+<script>
+  import { startDeferredIframes } from "../lib/deferredEmbed";
+  startDeferredIframes();
+</script>

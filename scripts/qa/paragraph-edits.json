@@ -1,0 +1,56 @@
+{
+  "_comment": "Approved copy changes since the source was written, applied to the source text before the paragraph check compares it. Each entry says who approved it. Keep this list short and specific.",
+  "replace": [
+    {
+      "from": "Jenna Barbosa, MA,",
+      "to": "Jenna White, MA,",
+      "why": "Jenna's name change (Jenna's doc edits, Josh Nov 9)"
+    },
+    {
+      "from": "^Jenna Barbosa$",
+      "to": "Jenna White",
+      "regex": true,
+      "why": "Byline name change (Jenna's doc edits, Josh Nov 9)"
+    },
+    {
+      "from": "motorcycles",
+      "to": "pottery",
+      "why": "About fun fact (Jenna's doc edits, Josh Nov 9)"
+    },
+    {
+      "from": "info@jennarhae.com",
+      "to": "hello@jennarhae.com",
+      "why": "New email (Jenna's doc edits, Josh Nov 9)"
+    }
+  ],
+  "ignore": [
+    {
+      "pattern": "Fluent in ASL",
+      "why": "Alisha removed from Meet Your Coaches (Jenna's doc edits, Josh Nov 9)"
+    },
+    {
+      "pattern": "SAHM, Foster Care",
+      "why": "Angel removed from Meet Your Coaches (Jenna's doc edits, Josh Nov 9)"
+    },
+    {
+      "pattern": "Form functionality added after approval",
+      "why": "Mockup build note, not site copy (build brief)"
+    },
+    {
+      "pattern": "pending client approval",
+      "why": "Placeholder testimonials dropped (build brief)"
+    },
+    {
+      "pattern": "Working with Jenna helped me name what I had been quietly carrying",
+      "why": "Placeholder testimonial in the mockup (\"First Name, Location\", pending client approval), dropped per the build brief"
+    },
+    {
+      "pattern": "Faith-integrated coaching with Jenna gave me language for the survival patterns",
+      "why": "Placeholder testimonial in the mockup (\"First Name, Location\", pending client approval), dropped per the build brief"
+    },
+    {
+      "pattern": "I came in exhausted and skeptical",
+      "why": "Placeholder testimonial in the mockup (\"First Name, Location\", pending client approval), dropped per the build brief"
+    }
+  ]
+}

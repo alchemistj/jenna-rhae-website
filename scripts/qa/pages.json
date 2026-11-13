@@ -1,0 +1,21 @@
+{
+  "_comment": "Pages the paragraph check covers. path = the page on this site. source = where its words came from (the Lovable mockup for the new pages, the live WordPress site for the rebuilt ones). The blog list page is skipped: its cards are generated from the posts.",
+  "pages": [
+    { "slug": "home", "path": "/", "source": "https://jenna-rhae-web-spark.lovable.app/" },
+    { "slug": "trauma-coaching", "path": "/trauma-coaching/", "source": "https://jenna-rhae-web-spark.lovable.app/trauma-recovery-coaching" },
+    { "slug": "christian-life-coach-kansas-city-mo", "path": "/christian-life-coach-kansas-city-mo/", "source": "https://jenna-rhae-web-spark.lovable.app/christian-life-coach-kansas-city-mo" },
+    { "slug": "contact", "path": "/contact/", "source": "https://jenna-rhae-web-spark.lovable.app/contact" },
+    { "slug": "privacy", "path": "/privacy/", "source": "https://jenna-rhae-web-spark.lovable.app/privacy" },
+    { "slug": "terms", "path": "/terms/", "source": "https://jenna-rhae-web-spark.lovable.app/terms" },
+    { "slug": "text-messaging-terms", "path": "/text-messaging-terms/", "source": "https://jenna-rhae-web-spark.lovable.app/text-messaging-terms" },
+    { "slug": "about", "path": "/about/", "source": "https://jennarhae.com/about/" },
+    { "slug": "tenacious-grace", "path": "/tenacious-grace/", "source": "https://jennarhae.com/tenacious-grace/" },
+    { "slug": "free-trauma-test", "path": "/free-trauma-test/", "source": "https://jennarhae.com/free-trauma-test/" },
+    { "slug": "what-does-a-trauma-coach-do", "path": "/what-does-a-trauma-coach-do/", "source": "https://jennarhae.com/what-does-a-trauma-coach-do/" },
+    { "slug": "what-causes-complex-trauma", "path": "/what-causes-complex-trauma/", "source": "https://jennarhae.com/what-causes-complex-trauma/" },
+    { "slug": "is-grief-trauma", "path": "/is-grief-trauma/", "source": "https://jennarhae.com/is-grief-trauma/" },
+    { "slug": "what-to-do-after-trauma", "path": "/what-to-do-after-trauma/", "source": "https://jennarhae.com/what-to-do-after-trauma/" },
+    { "slug": "trauma-nightmares", "path": "/trauma-nightmares/", "source": "https://jennarhae.com/trauma-nightmares/" },
+    { "slug": "how-to-trust-after-trauma", "path": "/how-to-trust-after-trauma/", "source": "https://jennarhae.com/how-to-trust-after-trauma/" }
+  ]
+}

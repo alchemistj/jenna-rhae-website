@@ -1,0 +1,66 @@
+---
+/** Renders WordPress body runs in source order. Inline markdown is already HTML. */
+import type { WpRun } from "../data/types";
+import { getImageMeta } from "../lib/images";
+import { isContactHref } from "../lib/measurement/contactHref";
+import WpFigure from "./WpFigure.astro";
+
+interface Props {
+  runs: WpRun[];
+}
+const { runs } = Astro.props;
+let largeImages = 0;
+
+function inlineSide(run: WpRun): "left" | "right" {
+  if (run.type !== "image") return "right";
+  const large = getImageMeta(run.image).width > 280;
+  if (!large) return "right";
+  const side = largeImages % 2 === 0 ? "right" : "left";
+  largeImages += 1;
+  return side;
+}
+---
+
+<div class="wp-prose">
+  {
+    runs.map((run) => {
+      if (run.type === "p") return <p class="soft" set:html={run.html} />;
+      if (run.type === "h2") return <h2 set:html={run.html} />;
+      if (run.type === "h3") return <h3 set:html={run.html} />;
+      if (run.type === "h4") return <h4 set:html={run.html} />;
+      if (run.type === "ul") {
+        return (
+          <ul>
+            {run.items.map((item) => (
+              <li set:html={item} />
+            ))}
+          </ul>
+        );
+      }
+      if (run.type === "ol") {
+        return (
+          <ol>
+            {run.items.map((item) => (
+              <li set:html={item} />
+            ))}
+          </ol>
+        );
+      }
+      if (run.type === "image") {
+        return <WpFigure image={run.image} alt={run.alt} kind="inline" side={inlineSide(run)} />;
+      }
+      return (
+        <p class="wp-cta">
+          <a
+            href={run.href}
+            class="btn-accent"
+            target={run.newTab ? "_blank" : undefined}
+            rel={run.newTab ? "noopener noreferrer" : undefined}
+            data-cta-location={isContactHref(run.href) ? "main" : undefined}
+            set:html={run.html}
+          />
+        </p>
+      );
+    })
+  }
+</div>

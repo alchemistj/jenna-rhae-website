@@ -1,0 +1,276 @@
+---
+/**
+ * Contact form that posts straight from the browser to Central Forms (src/lib/leadSubmit.ts).
+ * - Renders fully in the server HTML. Without JavaScript the submit button stays disabled and the page says to email or book.
+ * - Honeypot field, unchecked SMS consent box linking to the three legal pages.
+ * - Failure messages offer the mailto link and the Book button instead of a phone number (Jenna has none).
+ * - Fires GA4 generate_lead once per stored lead (never for duplicates).
+ */
+import type { FormCopy } from "../data/types";
+import { isContactHref } from "../lib/measurement/contactHref";
+import { EMAIL, MAILTO } from "../lib/site";
+import Section from "./Section.astro";
+
+interface Props {
+  form: FormCopy;
+  bookHref: string;
+}
+const { form, bookHref } = Astro.props;
+const bookLocation = isContactHref(bookHref) ? "main" : undefined;
+---
+
+<Section id="contact-form">
+  <div class="mx-auto max-w-2xl">
+    <div class="mb-8 text-center">
+      <div class="eyebrow mb-3">{form.eyebrow}</div>
+      <h2>{form.heading}</h2>
+    </div>
+
+    <form
+      class="space-y-4"
+      data-lead-form
+      data-sending={form.sending}
+      data-submit-label={form.submit}
+      data-how-heard-label={form.howHeardFieldLabel}
+      data-sms-label={form.smsFieldLabel}
+      autocomplete="on"
+    >
+      <div class="grid gap-4 md:grid-cols-2">
+        <div>
+          <label for="lead-first-name" class="mb-2 block text-sm font-bold">{form.firstName.label}</label>
+          <input
+            id="lead-first-name"
+            name="first_name"
+            type="text"
+            class="field-input"
+            placeholder={form.firstName.placeholder}
+            autocomplete="given-name"
+            required
+          />
+        </div>
+        <div>
+          <label for="lead-last-name" class="mb-2 block text-sm font-bold">{form.lastName.label}</label>
+          <input
+            id="lead-last-name"
+            name="last_name"
+            type="text"
+            class="field-input"
+            placeholder={form.lastName.placeholder}
+            autocomplete="family-name"
+          />
+        </div>
+      </div>
+      <div>
+        <label for="lead-email" class="mb-2 block text-sm font-bold">{form.email.label}</label>
+        <input
+          id="lead-email"
+          name="email"
+          type="email"
+          class="field-input"
+          placeholder={form.email.placeholder}
+          autocomplete="email"
+          required
+        />
+      </div>
+      <div>
+        <label for="lead-phone" class="mb-2 block text-sm font-bold">
+          {form.phone.label} <span class="font-normal soft">{form.phone.optional}</span>
+        </label>
+        <input
+          id="lead-phone"
+          name="phone"
+          type="tel"
+          class="field-input"
+          placeholder={form.phone.placeholder}
+          autocomplete="tel"
+        />
+      </div>
+      <div>
+        <label for="lead-message" class="mb-2 block text-sm font-bold">{form.message.label}</label>
+        <textarea id="lead-message" name="message" rows="5" class="field-input" placeholder={form.message.placeholder}
+        ></textarea>
+      </div>
+      <div>
+        <label for="lead-how-heard" class="mb-2 block text-sm font-bold">{form.howHeard.label}</label>
+        <select id="lead-how-heard" name="how_heard" class="field-input">
+          <option value="" disabled selected>{form.howHeard.placeholder}</option>
+          {form.howHeard.options.map((option) => <option value={option}>{option}</option>)}
+        </select>
+      </div>
+
+      <!-- Honeypot: hidden from people, filled by bots. -->
+      <div class="hp-field" aria-hidden="true">
+        <label for="lead-website-url">{form.honeypotLabel}</label>
+        <input id="lead-website-url" name="website_url" type="text" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <div class="flex items-start gap-3">
+        <input id="lead-sms-consent" name="sms_consent" type="checkbox" class="mt-1 h-5 w-5 shrink-0 accent-accent" />
+        <label for="lead-sms-consent" class="text-sm soft">
+          {form.smsConsent.lead}
+          {
+            form.smsConsent.links.map((link, index) => (
+              <>
+                {" "}
+                <a href={link.href} class="link-accent underline">
+                  {link.label}
+                </a>
+                {index < form.smsConsent.links.length - 1 ? "," : "."}
+              </>
+            ))
+          }
+        </label>
+      </div>
+
+      <div class="pt-2">
+        <button type="submit" class="btn-accent w-full disabled:opacity-60 md:w-auto" data-submit disabled>
+          {form.submit}
+        </button>
+      </div>
+
+      <div role="status" aria-live="polite" data-status>
+        <p data-msg="loading" class="text-sm soft">
+          {form.loading}
+          {form.fallbackEmailLead}
+          <a href={MAILTO} class="link-accent underline">{EMAIL}</a>
+          {form.fallbackOr}
+          <a href={bookHref} class="link-accent underline" data-cta-location={bookLocation}>{form.fallbackBookLabel}</a>.
+        </p>
+        <p data-msg="success" class="font-bold" hidden>{form.success}</p>
+        <p data-msg="invalid" class="font-bold text-accent" hidden>{form.invalid}</p>
+        <p data-msg="rate_limited" class="font-bold text-accent" hidden>
+          {form.rateLimited}
+          {form.fallbackEmailLead}
+          <a href={MAILTO} class="underline">{EMAIL}</a>
+          {form.fallbackOr}
+          <a href={bookHref} class="underline" data-cta-location={bookLocation}>{form.fallbackBookLabel}</a>.
+        </p>
+        <p data-msg="unconfirmed" class="font-bold text-accent" hidden>
+          {form.unconfirmed}
+          {form.fallbackEmailLead}
+          <a href={MAILTO} class="underline">{EMAIL}</a>
+          {form.fallbackOr}
+          <a href={bookHref} class="underline" data-cta-location={bookLocation}>{form.fallbackBookLabel}</a>.
+        </p>
+        <p data-msg="not_production" class="text-sm soft" hidden>{form.notProduction}</p>
+      </div>
+
+      <noscript>
+        <p class="font-bold">
+          {form.noscript}
+          {form.fallbackEmailLead}
+          <a href={MAILTO} class="link-accent underline">{EMAIL}</a>
+          {form.fallbackOr}
+          <a href={bookHref} class="link-accent underline" data-cta-location={bookLocation}>{form.fallbackBookLabel}</a>.
+        </p>
+      </noscript>
+    </form>
+  </div>
+</Section>
+
+<script>
+  import { createLeadSubmitter, type LeadResult } from "../lib/leadSubmit";
+  import { trackEvent } from "../lib/analytics";
+  import { collectLeadFormSuccess } from "../lib/measurement/collect";
+
+  const FIRED_KEY = "ff-lead-fired";
+  const form = document.querySelector<HTMLFormElement>("[data-lead-form]");
+
+  function alreadyFired(id: string): boolean {
+    try {
+      return (window.sessionStorage.getItem(FIRED_KEY) ?? "").split(",").includes(id);
+    } catch {
+      return false;
+    }
+  }
+  function markFired(id: string) {
+    try {
+      const ids = (window.sessionStorage.getItem(FIRED_KEY) ?? "").split(",").filter(Boolean);
+      ids.push(id);
+      window.sessionStorage.setItem(FIRED_KEY, ids.join(","));
+    } catch {
+      /* session storage can be blocked; the id is still unique per submission */
+    }
+  }
+
+  if (form) {
+    const submitButton = form.querySelector<HTMLButtonElement>("[data-submit]")!;
+    const messages = Array.from(form.querySelectorAll<HTMLElement>("[data-msg]"));
+    const submitLabel = form.dataset.submitLabel ?? submitButton.textContent ?? "";
+    const sendingLabel = form.dataset.sending ?? submitLabel;
+    const howHeardLabel = form.dataset.howHeardLabel ?? "";
+    const smsLabel = form.dataset.smsLabel ?? "";
+
+    const show = (kind: string | null) => {
+      for (const el of messages) el.hidden = el.dataset.msg !== kind;
+    };
+
+    const submitter = createLeadSubmitter(
+      {
+        hostname: window.location.hostname,
+        get href() {
+          return window.location.href;
+        },
+        get referrer() {
+          return document.referrer;
+        },
+        get search() {
+          return window.location.search;
+        },
+        fetch: window.fetch.bind(window),
+        now: () => Date.now(),
+        uuid: () => crypto.randomUUID(),
+      },
+      { howHeard: howHeardLabel, smsConsent: smsLabel },
+    );
+
+    // Time the form became usable. Central Forms treats a submit under 2 seconds after this as a spam signal.
+    let startedAt = Date.now();
+
+    show(null);
+    submitButton.disabled = false;
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (submitButton.disabled) return;
+      const data = new FormData(form);
+      const text = (name: string) => String(data.get(name) ?? "");
+      submitButton.disabled = true;
+      submitButton.textContent = sendingLabel;
+      show(null);
+
+      let result: LeadResult;
+      try {
+        result = await submitter.submit(
+          {
+            firstName: text("first_name"),
+            lastName: text("last_name"),
+            email: text("email"),
+            phone: text("phone"),
+            message: text("message"),
+            howHeard: text("how_heard"),
+            smsConsent: data.get("sms_consent") !== null,
+            honeypot: text("website_url"),
+          },
+          startedAt,
+        );
+      } catch {
+        result = { kind: "unconfirmed" };
+      }
+
+      submitButton.disabled = false;
+      submitButton.textContent = submitLabel;
+      show(result.kind);
+
+      if (result.kind === "success") {
+        form.reset();
+        startedAt = Date.now();
+        void collectLeadFormSuccess({ submissionId: result.id, formSource: "main-contact" });
+        if (result.conversion && !alreadyFired(result.id)) {
+          markFired(result.id);
+          trackEvent("generate_lead", { transaction_id: result.id });
+        }
+      }
+    });
+  }
+</script>

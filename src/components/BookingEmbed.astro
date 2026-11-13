@@ -1,0 +1,33 @@
+---
+/**
+ * SpringboardCRM booking calendar, deferred (see DeferredIframe). Anchor id is "book": every Book button on a
+ * page that has this section links to #book. Place it high on the page, right after the opening section.
+ */
+import { booking } from "../data/site";
+import {
+  BOOKING_ANCHOR,
+  BOOKING_EMBED_HEIGHT,
+  BOOKING_EMBED_HEIGHT_MOBILE,
+  BOOKING_FRAME_ID,
+  BOOKING_URL,
+} from "../lib/site";
+import Section from "./Section.astro";
+import DeferredIframe from "./DeferredIframe.astro";
+---
+
+<Section id={BOOKING_ANCHOR} bg="cream" compact>
+  <div class="mx-auto max-w-3xl">
+    {booking.eyebrow && <div class="eyebrow mb-3 text-center">{booking.eyebrow}</div>}
+    <h2 class="mb-8 text-center">{booking.heading}</h2>
+    <DeferredIframe
+      src={BOOKING_URL}
+      title={booking.iframeTitle}
+      noscriptLabel={booking.noscript}
+      height={BOOKING_EMBED_HEIGHT}
+      mobileHeight={BOOKING_EMBED_HEIGHT_MOBILE}
+      bare
+      autosize
+      frameId={BOOKING_FRAME_ID}
+    />
+  </div>
+</Section>

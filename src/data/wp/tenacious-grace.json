@@ -1,0 +1,50 @@
+{
+  "slug": "tenacious-grace",
+  "url": "/tenacious-grace/",
+  "liveUrl": "https://jennarhae.com/tenacious-grace/",
+  "type": "page",
+  "title": "Tenacious Grace | Conquer Emotional Eating with Jesus",
+  "metaDescription": "Struggling with emotional eating? You're not alone. Discover a new approach to redefining your relationship with food and finding lasting freedom.",
+  "h1": "Tenacious Grace",
+  "modifiedDate": "2025-03-20T13:28:59+00:00",
+  "schemaTypes": [
+    "BreadcrumbList",
+    "ImageObject",
+    "WebPage",
+    "WebSite"
+  ],
+  "featuredImage": null,
+  "author": null,
+  "sections": [
+    {
+      "type": "h2",
+      "text": "Conquer Emotional Eating with Jesus"
+    },
+    {
+      "type": "image",
+      "src": "src/assets/wp/tenacious-grace.avif",
+      "alt": "tenacious grace",
+      "title": "tenacious grace",
+      "width": 328,
+      "height": 410
+    },
+    {
+      "type": "p",
+      "text": [
+        "With so much information on how to lose weight, have you found anything that helps you understand why emotional eating is a struggle for you to begin with?",
+        "**Have you wondered if others struggle with food the same way you do?** You’re not alone in the confusing and frustrating tug of war with food."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Finding a different approach to the issue may just be what you’ve been looking for all along."
+    },
+    {
+      "type": "cta",
+      "text": "**Learn more**",
+      "href": "https://amzn.to/2UaJEaO",
+      "newTab": true
+    }
+  ],
+  "faq": []
+}

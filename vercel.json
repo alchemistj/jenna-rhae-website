@@ -1,0 +1,30 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "trailingSlash": true,
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "www.jennarhae.com" }],
+      "destination": "https://jennarhae.com/$1",
+      "permanent": true
+    },
+    { "source": "/life-coach-columbia-mo", "destination": "/christian-life-coach-kansas-city-mo/", "permanent": true },
+    { "source": "/life-coach-columbia-mo/", "destination": "/christian-life-coach-kansas-city-mo/", "permanent": true },
+    { "source": "/feed", "destination": "/blog/", "permanent": true },
+    { "source": "/feed/", "destination": "/blog/", "permanent": true },
+    { "source": "/comments/feed", "destination": "/blog/", "permanent": true },
+    { "source": "/comments/feed/", "destination": "/blog/", "permanent": true },
+    { "source": "/the-gift-hidden-in-the-ask", "destination": "/blog/", "permanent": true },
+    { "source": "/the-gift-hidden-in-the-ask/", "destination": "/blog/", "permanent": true }
+  ],
+  "headers": [
+    {
+      "source": "/_astro/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/(.*)\\.(png|jpg|jpeg|webp|avif|svg|ico)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }]
+    }
+  ]
+}

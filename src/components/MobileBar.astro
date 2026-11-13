@@ -1,0 +1,14 @@
+---
+/** Sticky bottom bar on phones: the Book button only (no phone for this site). Hidden from md up. */
+import { mobileBar } from "../data/site";
+import BookButton from "./BookButton.astro";
+
+interface Props {
+  bookHref: string;
+}
+const { bookHref } = Astro.props;
+---
+
+<div class="mobile-bar" data-mobile-bar>
+  <BookButton label={mobileBar.label} href={bookHref} location="sticky_bar" class="w-full" />
+</div>

@@ -1,0 +1,132 @@
+export const ATTRIBUTION_QUERY_KEYS = [
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "utm_content",
+  "utm_id",
+  "gclid",
+  "gbraid",
+  "wbraid",
+  "msclkid",
+  "fbclid",
+] as const;
+
+export type AttributionQueryKey = (typeof ATTRIBUTION_QUERY_KEYS)[number];
+
+export type AttributionTouch = {
+  landing_page: string | null;
+  referrer: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  utm_term: string | null;
+  utm_content: string | null;
+  utm_id: string | null;
+  gclid: string | null;
+  gbraid: string | null;
+  wbraid: string | null;
+  msclkid: string | null;
+  fbclid: string | null;
+  captured_at: string;
+};
+
+export type AttributionSnapshot = AttributionTouch & {
+  /**
+   * These fields are optional for backwards-compatible lead fixtures and
+   * non-browser callers. The production collector always supplies them;
+   * FF Reports rejects visit events that omit either identifier.
+   */
+  visitor_id?: string;
+  session_id?: string;
+  first_touch?: AttributionTouch | null;
+  latest_touch?: AttributionTouch | null;
+};
+
+const FIELD_LIMITS: Record<AttributionQueryKey, number> = {
+  utm_source: 120,
+  utm_medium: 120,
+  utm_campaign: 120,
+  utm_term: 120,
+  utm_content: 120,
+  utm_id: 120,
+  gclid: 200,
+  gbraid: 200,
+  wbraid: 200,
+  msclkid: 200,
+  fbclid: 200,
+};
+
+const LANDING_PAGE_LIMIT = 500;
+const REFERRER_LIMIT = 500;
+const ANONYMOUS_ID_LIMIT = 128;
+
+function trimValue(value: string, max: number): string {
+  return value.trim().slice(0, max);
+}
+
+function readQueryValue(params: URLSearchParams, key: AttributionQueryKey): string | null {
+  const raw = params.get(key);
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (trimmed.length > FIELD_LIMITS[key]) return null;
+  return trimmed || null;
+}
+
+export function extractAttributionFromSearch(search: string): Partial<AttributionSnapshot> {
+  const params = new URLSearchParams(search.startsWith("?") ? search : `?${search}`);
+  const partial: Partial<AttributionSnapshot> = {};
+  for (const key of ATTRIBUTION_QUERY_KEYS) {
+    const value = readQueryValue(params, key);
+    if (value) partial[key] = value;
+  }
+  return partial;
+}
+
+function sanitizeTouch(input: Partial<AttributionTouch> | null | undefined): AttributionTouch {
+  const safe = input ?? {};
+  return {
+    landing_page: safe.landing_page ? trimValue(safe.landing_page, LANDING_PAGE_LIMIT) : null,
+    referrer: safe.referrer ? trimValue(safe.referrer, REFERRER_LIMIT) : null,
+    utm_source: safe.utm_source ? trimValue(safe.utm_source, FIELD_LIMITS.utm_source) : null,
+    utm_medium: safe.utm_medium ? trimValue(safe.utm_medium, FIELD_LIMITS.utm_medium) : null,
+    utm_campaign: safe.utm_campaign ? trimValue(safe.utm_campaign, FIELD_LIMITS.utm_campaign) : null,
+    utm_term: safe.utm_term ? trimValue(safe.utm_term, FIELD_LIMITS.utm_term) : null,
+    utm_content: safe.utm_content ? trimValue(safe.utm_content, FIELD_LIMITS.utm_content) : null,
+    utm_id: safe.utm_id ? trimValue(safe.utm_id, FIELD_LIMITS.utm_id) : null,
+    gclid: safe.gclid ? trimValue(safe.gclid, FIELD_LIMITS.gclid) : null,
+    gbraid: safe.gbraid ? trimValue(safe.gbraid, FIELD_LIMITS.gbraid) : null,
+    wbraid: safe.wbraid ? trimValue(safe.wbraid, FIELD_LIMITS.wbraid) : null,
+    msclkid: safe.msclkid ? trimValue(safe.msclkid, FIELD_LIMITS.msclkid) : null,
+    fbclid: safe.fbclid ? trimValue(safe.fbclid, FIELD_LIMITS.fbclid) : null,
+    captured_at: safe.captured_at || new Date().toISOString(),
+  };
+}
+
+export function sanitizeAttributionSnapshot(
+  input: Partial<AttributionSnapshot> | null | undefined,
+): AttributionSnapshot {
+  const safe = input ?? {};
+  const safeId = (value: string | null | undefined) =>
+    value ? trimValue(value, ANONYMOUS_ID_LIMIT) : "";
+  return {
+    ...sanitizeTouch(safe),
+    visitor_id: safeId(safe.visitor_id),
+    session_id: safeId(safe.session_id),
+    first_touch: safe.first_touch ? sanitizeTouch(safe.first_touch) : null,
+    latest_touch: safe.latest_touch ? sanitizeTouch(safe.latest_touch) : null,
+  };
+}
+
+export function hasAttributionParams(search: string): boolean {
+  const params = new URLSearchParams(search.startsWith("?") ? search : `?${search}`);
+  return ATTRIBUTION_QUERY_KEYS.some((key) => Boolean(readQueryValue(params, key)));
+}
+
+export function hasPaidClickParams(search: string): boolean {
+  const params = new URLSearchParams(search.startsWith("?") ? search : `?${search}`);
+  return ["gclid", "msclkid"].some((key) => {
+    const value = params.get(key);
+    return Boolean(value && value.trim().length <= FIELD_LIMITS[key as AttributionQueryKey]);
+  });
+}

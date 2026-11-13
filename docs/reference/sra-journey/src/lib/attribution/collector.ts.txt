@@ -1,0 +1,188 @@
+import type { AttributionSnapshot, AttributionTouch } from "./allowlist";
+
+const EVENT_KEY_PREFIX = "sra_paid_click_event_v1:";
+const MAX_EVENT_ID = 160;
+
+type CollectionInit = {
+  endpoint?: string;
+  fetchImpl?: typeof fetch;
+  sendBeacon?: (url: string, data?: BodyInit | null) => boolean;
+};
+
+export type CollectionResult =
+  | { ok: true; sent: boolean; duplicate?: boolean }
+  | { ok: false; sent: false; error: string };
+
+function buildEventId(): string {
+  try {
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return `sra-${crypto.randomUUID()}`;
+    }
+  } catch {
+    // Fall through for older browsers.
+  }
+  return `sra-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
+export const ATTRIBUTION_INGEST_PATH = "/api/site-context/";
+
+function buildEndpoint(candidate?: string): string {
+  const endpoint = candidate?.trim() || ATTRIBUTION_INGEST_PATH;
+  // Keep browser collection same-origin. The Vercel rewrite forwards this
+  // neutral path to the centralized FF Reports ingestion endpoint.
+  return endpoint.startsWith("/") && !endpoint.startsWith("//")
+    ? endpoint
+    : ATTRIBUTION_INGEST_PATH;
+}
+
+function touchPayload(touch: AttributionTouch | null | undefined) {
+  if (!touch) return null;
+  return {
+    landingPage: touch.landing_page,
+    referrer: touch.referrer,
+    gclid: touch.gclid,
+    msclkid: touch.msclkid,
+    utmSource: touch.utm_source,
+    utmMedium: touch.utm_medium,
+    utmCampaign: touch.utm_campaign,
+    utmTerm: touch.utm_term,
+    utmContent: touch.utm_content,
+    utmId: touch.utm_id,
+    capturedAt: touch.captured_at,
+  };
+}
+
+function eventTouch(snapshot: AttributionSnapshot): AttributionTouch {
+  // The top level of a stored snapshot is intentionally cumulative so leads
+  // retain prior attribution. A visit event must describe only the paid-click
+  // parameters carried by the current landing URL, which is latest_touch.
+  return snapshot.latest_touch || snapshot;
+}
+
+function sameTouch(
+  first: AttributionTouch | null | undefined,
+  latest: AttributionTouch | null | undefined,
+): boolean {
+  if (!first || !latest) return false;
+  return (
+    first.captured_at === latest.captured_at &&
+    first.landing_page === latest.landing_page &&
+    first.gclid === latest.gclid &&
+    first.msclkid === latest.msclkid &&
+    first.utm_source === latest.utm_source &&
+    first.utm_medium === latest.utm_medium &&
+    first.utm_campaign === latest.utm_campaign &&
+    first.utm_term === latest.utm_term &&
+    first.utm_content === latest.utm_content &&
+    first.utm_id === latest.utm_id
+  );
+}
+
+export function buildAttributionVisitPayload(
+  snapshot: AttributionSnapshot,
+  pathname: string,
+  eventId: string,
+) {
+  const currentTouch = eventTouch(snapshot);
+  return {
+    siteKey: "sra-roofing-website",
+    eventId: eventId.slice(0, MAX_EVENT_ID),
+    occurredAt: currentTouch.captured_at,
+    landingPath: currentTouch.landing_page || pathname,
+    referrer: currentTouch.referrer,
+    visitorId: snapshot.visitor_id || null,
+    sessionId: snapshot.session_id || null,
+    gclid: currentTouch.gclid,
+    msclkid: currentTouch.msclkid,
+    utmSource: currentTouch.utm_source,
+    utmMedium: currentTouch.utm_medium,
+    utmCampaign: currentTouch.utm_campaign,
+    utmTerm: currentTouch.utm_term,
+    utmContent: currentTouch.utm_content,
+    utmId: currentTouch.utm_id,
+    firstTouch: touchPayload(snapshot.first_touch),
+    latestTouch: touchPayload(snapshot.latest_touch),
+    isFirstTouch: sameTouch(snapshot.first_touch, snapshot.latest_touch),
+  };
+}
+
+export function buildAttributionVisitDedupeKey(
+  snapshot: AttributionSnapshot,
+  pathname: string,
+): string {
+  const currentTouch = eventTouch(snapshot);
+  const dedupeInput = [
+    pathname,
+    currentTouch.gclid || "",
+    currentTouch.msclkid || "",
+    currentTouch.utm_source || "",
+    currentTouch.utm_medium || "",
+    currentTouch.utm_campaign || "",
+    currentTouch.utm_term || "",
+    currentTouch.utm_content || "",
+  ].join("|");
+  return `${EVENT_KEY_PREFIX}${dedupeInput.slice(0, 400)}`;
+}
+
+function getDedupeStorage(): Storage | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    return window.sessionStorage;
+  } catch {
+    return undefined;
+  }
+}
+
+export async function collectAttributionVisit(
+  snapshot: AttributionSnapshot,
+  pathname: string,
+  init: CollectionInit = {},
+): Promise<CollectionResult> {
+  const currentTouch = eventTouch(snapshot);
+  if (!currentTouch.gclid && !currentTouch.msclkid) return { ok: true, sent: false };
+  const endpoint = buildEndpoint(init.endpoint);
+  if (!endpoint) return { ok: true, sent: false };
+  const storage = getDedupeStorage();
+  const dedupeKey = buildAttributionVisitDedupeKey(snapshot, pathname);
+  let existingEventId: string | null = null;
+  try {
+    existingEventId = storage?.getItem(dedupeKey) || null;
+  } catch {
+    // Continue without client-side dedupe.
+  }
+  if (existingEventId) return { ok: true, sent: false, duplicate: true };
+
+  const eventId = buildEventId();
+  const payload = buildAttributionVisitPayload(snapshot, pathname, eventId);
+  const body = JSON.stringify(payload);
+  const fetchImpl = init.fetchImpl || fetch;
+  try {
+    const response = await fetchImpl(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+      keepalive: true,
+      mode: "same-origin",
+    });
+    if (response.ok) {
+      try { storage?.setItem(dedupeKey, eventId); } catch { /* best effort */ }
+      return { ok: true, sent: true };
+    }
+    return { ok: false, sent: false, error: `HTTP ${response.status}` };
+  } catch {
+    // A beacon is only a best-effort unload fallback after fetch failed.
+    const sendBeacon = init.sendBeacon ||
+      (typeof navigator !== "undefined" ? navigator.sendBeacon?.bind(navigator) : undefined);
+    if (sendBeacon && typeof Blob !== "undefined") {
+      try {
+        if (sendBeacon(endpoint, new Blob([body], { type: "text/plain;charset=UTF-8" }))) {
+          try { storage?.setItem(dedupeKey, eventId); } catch { /* best effort */ }
+          return { ok: true, sent: true };
+        }
+      } catch {
+        // Ignore beacon failure and report the network failure.
+      }
+    }
+    return { ok: false, sent: false, error: "network_error" };
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "slug": "about",
+  "url": "/about/",
+  "liveUrl": "https://jennarhae.com/about/",
+  "type": "page",
+  "title": "About Jenna Rhae White | Freedom Life Coach",
+  "metaDescription": "I’m Jenna Rhae, and I want to help you step into the freedom Jesus Christ has for you. It’s time to heal and grow with Christ-centered trauma coaching.",
+  "h1": "About Me",
+  "modifiedDate": "2026-05-20T22:15:36+00:00",
+  "schemaTypes": [
+    "BreadcrumbList",
+    "ImageObject",
+    "WebPage",
+    "WebSite"
+  ],
+  "featuredImage": null,
+  "author": null,
+  "sections": [
+    {
+      "type": "image",
+      "src": "src/assets/wp/flower-icon.png",
+      "alt": "",
+      "title": "flower-icon",
+      "width": 70,
+      "height": 48,
+      "decorative": true
+    },
+    {
+      "type": "image",
+      "src": "src/assets/wp/jennarhae-trauma-coach.jpg",
+      "alt": "jennarhae-Trauma-Coach",
+      "title": "jennarhae-Trauma-Coach",
+      "width": 490,
+      "height": 484
+    },
+    {
+      "type": "p",
+      "text": "Hi friend — I’m so glad you’re here."
+    },
+    {
+      "type": "p",
+      "text": [
+        "If we were meeting in person, this would probably look like a cozy coffee shop conversation filled with honesty, laughter, depth, and encouragement.",
+        "Connection and people’s stories have always mattered deeply to me, and I consider it an incredible privilege to walk alongside others in seasons of healing, growth, and transformation."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "I’m Jenna White. Many people have previously known me professionally as Jenna Barbosa, and as I’ve stepped into this new season of marriage and family, I’m also stepping into a rebrand under the name Jennarhae — a name created from my first and middle name that feels deeply personal to who I am and the heart behind my work."
+    },
+    {
+      "type": "p",
+      "text": [
+        "I recently married the love of my life, Joshua, and in one beautiful season of change, relocated from St. Louis to the Kansas City area while becoming a bonus mom to four amazing stepchildren, ages 15–23.",
+        "Life looks a little different these days, and honestly, it’s fuller and sweeter than I could have imagined."
+      ]
+    },
+    {
+      "type": "p",
+      "text": [
+        "I’m a Certified Christian Life Coach and Biblical Counselor passionate about helping people move from survival mode into emotional, spiritual, and relational health.",
+        "My approach blends practical psychology, biblical truth, nervous system healing, and compassionate coaching to help people find freedom from anxiety, trauma patterns, shame, emotional overwhelm, and feeling stuck."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "Whether I’m coaching one-on-one, teaching from a stage, leading workshops, or creating resources online, my heart is the same: helping people build resilient, healthy lives rooted in truth, purpose, and connection with God."
+    },
+    {
+      "type": "image",
+      "src": "src/assets/wp/christian-life-coach.jpg",
+      "alt": "Christian Life Coach",
+      "title": "Christian Life Coach",
+      "width": 500,
+      "height": 534
+    },
+    {
+      "type": "image",
+      "src": "src/assets/wp/facts-about-jenna.jpg",
+      "alt": "facts-about-Jenna",
+      "title": "facts-about-Jenna",
+      "width": 490,
+      "height": 450
+    },
+    {
+      "type": "h4",
+      "text": "Three fun facts about me:"
+    },
+    {
+      "type": "ul",
+      "items": [
+        "Coffee is absolutely my love language.",
+        "The beach will forever be my happy place.",
+        "I love travel, deep conversations, pottery, and creating spaces where people feel safe to be fully seen and known."
+      ]
+    },
+    {
+      "type": "p",
+      "text": "I’m truly honored you’re here, and I look forward to connecting with you."
+    },
+    {
+      "type": "p",
+      "text": "- Jenna White | Jennarhae"
+    }
+  ],
+  "faq": []
+}

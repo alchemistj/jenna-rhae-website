@@ -1,0 +1,155 @@
+---
+/**
+ * Site header. Fixed, hides on scroll down and returns on scroll up (transform only).
+ * Desktop: logo, nav links, Book button. Mobile: logo, Book button and a hamburger (native <details>, so it works without JS).
+ * Nav items whose route is pending in the route registry are not rendered.
+ */
+import { header, brand } from "../data/site";
+import { isPublished } from "../lib/routeRegistry";
+import { getInlineLogo } from "../lib/inlineImage";
+import { isContactHref } from "../lib/measurement/contactHref";
+import BookButton from "./BookButton.astro";
+import Icon from "./Icon.astro";
+
+interface Props {
+  /** Current page path, for the active link. */
+  path: string;
+  bookHref: string;
+}
+const { path, bookHref } = Astro.props;
+const nav = header.nav.filter((item) => isPublished(item.href));
+const logo = await getInlineLogo("jenna-logo.png", 150);
+const logoHeight = Math.round(logo.height / 2);
+---
+
+<header class="site-header" data-site-header>
+  <div class="container-narrow flex h-full items-center justify-between gap-3">
+    <a href="/" class="flex shrink-0 items-center">
+      <img src={logo.dataUri} alt={brand.logoAlt} width="150" height={logoHeight} class="h-auto w-[150px]" />
+    </a>
+
+    <nav class="hidden items-center gap-7 text-sm md:flex" aria-label={header.navLabel}>
+      {
+        nav.map((item) => (
+          <a
+            href={item.href}
+            class:list={[
+              "py-3 transition-colors hover:text-accent",
+              item.href === path ? "font-bold text-accent" : "text-charcoal/85",
+            ]}
+            aria-current={item.href === path ? "page" : undefined}
+            data-cta-location={isContactHref(item.href) ? "header" : undefined}
+          >
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <BookButton label={header.bookLong} href={bookHref} location="header" class="btn-sm hidden sm:inline-flex" />
+      <BookButton label={header.bookShort} href={bookHref} location="header" class="btn-sm sm:hidden" />
+      <details class="group md:hidden" data-menu>
+        <summary
+          class="flex h-12 w-12 cursor-pointer list-none items-center justify-center text-charcoal [&::-webkit-details-marker]:hidden"
+        >
+          <span class="sr-only">{header.menuLabel}</span>
+          <Icon name="menu" size={24} class="group-open:hidden" />
+          <Icon name="close" size={24} class="hidden group-open:block" />
+        </summary>
+        <nav
+          class="absolute left-0 right-0 top-full border-b bg-cream shadow-lg"
+          aria-label={header.menuLabel}
+        >
+          <div class="container-narrow flex flex-col py-3">
+            {
+              nav.map((item) => (
+                <a
+                  href={item.href}
+                  class:list={["py-3 text-base", item.href === path ? "font-bold text-accent" : "text-charcoal"]}
+                  aria-current={item.href === path ? "page" : undefined}
+                  data-cta-location={isContactHref(item.href) ? "mobile_menu" : undefined}
+                >
+                  {item.label}
+                </a>
+              ))
+            }
+            <BookButton label={header.bookLong} href={bookHref} location="mobile_menu" class="mt-2" />
+          </div>
+        </nav>
+      </details>
+    </div>
+  </div>
+</header>
+
+<script>
+  const header = document.querySelector<HTMLElement>("[data-site-header]");
+  const menu = header?.querySelector<HTMLDetailsElement>("details[data-menu]") ?? null;
+
+  if (header) {
+    let lastY = window.scrollY;
+    let upTravel = 0;
+    let hidden = false;
+    let ticking = false;
+
+    const setHidden = (value: boolean) => {
+      if (value === hidden) return;
+      hidden = value;
+      header.classList.toggle("is-hidden", value);
+    };
+
+    const frame = () => {
+      ticking = false;
+      const y = Math.max(0, window.scrollY);
+      const delta = y - lastY;
+      lastY = y;
+      // Never hide while the menu is open or focus is inside the header.
+      if (menu?.open || header.contains(document.activeElement)) {
+        setHidden(false);
+        upTravel = 0;
+        return;
+      }
+      if (delta > 0) {
+        upTravel = 0;
+        if (y > header.offsetHeight) setHidden(true);
+      } else if (delta < 0) {
+        upTravel += -delta;
+        if (upTravel >= 10 || y <= 0) setHidden(false);
+      }
+    };
+
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (!ticking) {
+          ticking = true;
+          window.requestAnimationFrame(frame);
+        }
+      },
+      { passive: true },
+    );
+
+    header.addEventListener("focusin", () => setHidden(false));
+
+    if (menu) {
+      const close = () => {
+        menu.open = false;
+      };
+      menu.addEventListener("click", (event) => {
+        if ((event.target as HTMLElement).closest("a")) close();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && menu.open) {
+          close();
+          menu.querySelector("summary")?.focus();
+        }
+      });
+      document.addEventListener("click", (event) => {
+        if (menu.open && !menu.contains(event.target as Node)) close();
+      });
+      window.matchMedia("(min-width: 768px)").addEventListener("change", (event) => {
+        if (event.matches) close();
+      });
+    }
+  }
+</script>
