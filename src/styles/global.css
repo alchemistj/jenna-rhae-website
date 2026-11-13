@@ -310,6 +310,9 @@
   .faq-item .faq-answer {
     padding-bottom: 1.25rem;
   }
+  .faq-item .faq-answer:has(+ .faq-answer) {
+    padding-bottom: 0.75rem;
+  }
 
   /* Two-column photo section */
   .two-col {

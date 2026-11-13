@@ -23,7 +23,10 @@ const page = {
   blocks: [
     {
       type: "intro",
-      text: "Jenna White provides trauma recovery coaching for women stuck in the survival patterns trauma leaves behind — hypervigilance, emotional exhaustion, identity loss, and the inability to rest. Sessions are faith-integrated, trauma-informed, and available online nationwide. If you are in Kansas City, MO, in-person sessions are also available.",
+      text: [
+        "Jenna White provides trauma recovery coaching for women stuck in the survival patterns trauma leaves behind — hypervigilance, emotional exhaustion, identity loss, and the inability to rest.",
+        "Sessions are faith-integrated, trauma-informed, and available online nationwide. If you are in Kansas City, MO, in-person sessions are also available.",
+      ],
     },
     { type: "booking" },
     {
@@ -60,8 +63,10 @@ const page = {
         {
           heading: "What Is Faith-Integrated Trauma Coaching?",
           paragraphs: [
-            "Faith-integrated trauma coaching holds space for both your nervous system and your relationship with God — without asking you to choose between them. For many women in survival mode, there is deep spiritual conflict: <em>Is rest selfish? Am I failing God? Is this trauma — or is this obedience?</em> These are real questions, and they deserve real answers.",
-            "Jenna's approach draws from both trauma-informed coaching methodology and Biblical counseling — helping you discern what God actually asked you to carry, and gently lay down what survival taught you to hold. Healing here is spiritually congruent, not spiritually pressured.",
+            "Faith-integrated trauma coaching holds space for both your nervous system and your relationship with God — without asking you to choose between them.",
+            "For many women in survival mode, there is deep spiritual conflict: <em>Is rest selfish? Am I failing God? Is this trauma — or is this obedience?</em> These are real questions, and they deserve real answers.",
+            "Jenna's approach draws from both trauma-informed coaching methodology and Biblical counseling — helping you discern what God actually asked you to carry, and gently lay down what survival taught you to hold.",
+            "Healing here is spiritually congruent, not spiritually pressured.",
           ],
           image: {
             image: "faith-coffee-bible",
@@ -92,7 +97,10 @@ const page = {
       items: [
         {
           title: "Credentialed, Not Just Credible",
-          body: "Jenna White holds a master's degree (MA) and certifications from the AACC's Light University, Lindenwood University, and Missouri Baptist University. She is a Certified Biblical Counselor and Emotional Freedom Life Coach — bringing academic training and lived understanding to every session.",
+          body: [
+            "Jenna White holds a master's degree (MA) and certifications from the AACC's Light University, Lindenwood University, and Missouri Baptist University.",
+            "She is a Certified Biblical Counselor and Emotional Freedom Life Coach — bringing academic training and lived understanding to every session.",
+          ],
         },
         {
           title: "Trauma-Informed Means the Pace Is Yours",
@@ -100,7 +108,10 @@ const page = {
         },
         {
           title: "Faith Is a Feature, Not a Filter",
-          body: "For women whose faith is central to their identity, healing must make theological sense — not just psychological sense. Jenna's approach helps you discern survival patterns from spiritual conviction, so that boundaries feel like stewardship and rest feels like permission, not failure.",
+          body: [
+            "For women whose faith is central to their identity, healing must make theological sense — not just psychological sense.",
+            "Jenna's approach helps you discern survival patterns from spiritual conviction, so that boundaries feel like stewardship and rest feels like permission, not failure.",
+          ],
         },
         {
           title: "Available Online Nationwide — and In Kansas City, MO",
@@ -117,7 +128,10 @@ const page = {
       items: [
         {
           q: "Can coaching help with complex or childhood trauma?",
-          a: "Coaching can be a valuable complement to trauma healing work, particularly around identity, patterns, and faith integration. Jenna works with women navigating the downstream effects of complex and childhood trauma — the survival patterns, identity confusion, and spiritual conflict that often persist long after the original wound. If clinical trauma treatment is needed, she will refer you to the appropriate care.",
+          a: [
+            "Coaching can be a valuable complement to trauma healing work, particularly around identity, patterns, and faith integration.",
+            "Jenna works with women navigating the downstream effects of complex and childhood trauma — the survival patterns, identity confusion, and spiritual conflict that often persist long after the original wound. If clinical trauma treatment is needed, she will refer you to the appropriate care.",
+          ],
         },
         {
           q: "What if I am not sure whether I have trauma?",
@@ -140,7 +154,10 @@ const page = {
     {
       type: "band",
       heading: "Trauma Recovery Coaching — Available Online and In Kansas City",
-      text: "Jenna White offers trauma recovery coaching online to women across the United States. No matter where you are located, sessions are accessible via secure video call at a time that works for your schedule. If you are in the Kansas City, MO area, in-person sessions are also available — including local meetups for those who prefer face-to-face connection.",
+      text: [
+        "Jenna White offers trauma recovery coaching online to women across the United States.",
+        "No matter where you are located, sessions are accessible via secure video call at a time that works for your schedule. If you are in the Kansas City, MO area, in-person sessions are also available — including local meetups for those who prefer face-to-face connection.",
+      ],
     },
     {
       type: "related",

@@ -18,7 +18,8 @@ interface WpImage {
 
 interface WpSection {
   type: string;
-  text?: string;
+  /** An array is one WordPress paragraph split between sentences. */
+  text?: string | string[];
   items?: string[];
   href?: string;
   src?: string;
@@ -106,16 +107,19 @@ describe("WordPress copy in the built pages", () => {
       const ordered: string[] = [];
       for (const section of doc.sections) {
         if (section.type === "p" || section.type === "h2" || section.type === "h3" || section.type === "h4") {
-          ordered.push(section.text ?? "");
-          expect(text).toContain(normalize(markdownToText(section.text ?? "")));
+          const parts = Array.isArray(section.text) ? section.text : [section.text ?? ""];
+          for (const part of parts) {
+            ordered.push(part);
+            expect(text).toContain(normalize(markdownToText(part)));
+          }
         }
+        if (section.type === "cta") expect(text).toContain(normalize(markdownToText(String(section.text ?? ""))));
         if (section.type === "ul" || section.type === "ol") {
           for (const item of section.items ?? []) {
             ordered.push(item);
             expect(text).toContain(normalize(markdownToText(item)));
           }
         }
-        if (section.type === "cta") expect(text).toContain(normalize(markdownToText(section.text ?? "")));
       }
       expectInOrder(text, ordered);
       if (doc.author) {

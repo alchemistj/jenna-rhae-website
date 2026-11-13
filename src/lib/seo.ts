@@ -85,7 +85,7 @@ export function buildJsonLd(input: JsonLdInput): Record<string, unknown> {
       mainEntity: input.faq.map((item) => ({
         "@type": "Question",
         name: plainText(item.q),
-        acceptedAnswer: { "@type": "Answer", text: plainText(item.a) },
+        acceptedAnswer: { "@type": "Answer", text: plainText(Array.isArray(item.a) ? item.a.join(" ") : item.a) },
       })),
     });
   }

@@ -39,7 +39,10 @@
     },
     {
       "type": "p",
-      "text": "If we were meeting in person, this would probably look like a cozy coffee shop conversation filled with honesty, laughter, depth, and encouragement. Connection and people’s stories have always mattered deeply to me, and I consider it an incredible privilege to walk alongside others in seasons of healing, growth, and transformation."
+      "text": [
+        "If we were meeting in person, this would probably look like a cozy coffee shop conversation filled with honesty, laughter, depth, and encouragement.",
+        "Connection and people’s stories have always mattered deeply to me, and I consider it an incredible privilege to walk alongside others in seasons of healing, growth, and transformation."
+      ]
     },
     {
       "type": "p",
@@ -47,11 +50,17 @@
     },
     {
       "type": "p",
-      "text": "I recently married the love of my life, Joshua, and in one beautiful season of change, relocated from St. Louis to the Kansas City area while becoming a bonus mom to four amazing stepchildren, ages 15–23. Life looks a little different these days, and honestly, it’s fuller and sweeter than I could have imagined."
+      "text": [
+        "I recently married the love of my life, Joshua, and in one beautiful season of change, relocated from St. Louis to the Kansas City area while becoming a bonus mom to four amazing stepchildren, ages 15–23.",
+        "Life looks a little different these days, and honestly, it’s fuller and sweeter than I could have imagined."
+      ]
     },
     {
       "type": "p",
-      "text": "I’m a Certified Christian Life Coach and Biblical Counselor passionate about helping people move from survival mode into emotional, spiritual, and relational health. My approach blends practical psychology, biblical truth, nervous system healing, and compassionate coaching to help people find freedom from anxiety, trauma patterns, shame, emotional overwhelm, and feeling stuck."
+      "text": [
+        "I’m a Certified Christian Life Coach and Biblical Counselor passionate about helping people move from survival mode into emotional, spiritual, and relational health.",
+        "My approach blends practical psychology, biblical truth, nervous system healing, and compassionate coaching to help people find freedom from anxiety, trauma patterns, shame, emotional overwhelm, and feeling stuck."
+      ]
     },
     {
       "type": "p",

@@ -28,7 +28,9 @@ interface WpImage {
 }
 
 type WpSection =
-  | { type: "h2" | "h3" | "h4" | "p" | "quote"; text: string }
+  | { type: "h2" | "h3" | "h4" | "quote"; text: string }
+  /** A WordPress paragraph. An array is one long paragraph split between sentences (scripts/qa/paragraphs.mjs). */
+  | { type: "p"; text: string | string[] }
   | { type: "ul" | "ol"; items: string[] }
   | { type: "cta"; text: string; href: string; newTab?: boolean }
   | { type: "embed"; kind: string; src: string; title: string }
@@ -92,8 +94,17 @@ function isImage(section: WpSection): section is WpImage {
   return section.type === "image";
 }
 
+/** One section as runs. A split paragraph gives one run per part; everything else gives one run. */
+function toRuns(section: WpSection): WpRun[] {
+  if (section.type === "p") {
+    const parts = Array.isArray(section.text) ? section.text : [section.text];
+    return parts.map((text) => ({ type: "p", html: renderInline(text) }));
+  }
+  return [toRun(section)];
+}
+
 function toRun(section: WpSection): WpRun {
-  if (section.type === "p") return { type: "p", html: renderInline(section.text) };
+  if (section.type === "p") throw new Error("Use toRuns for paragraphs");
   if (section.type === "h2" || section.type === "h3" || section.type === "h4") {
     return { type: section.type, html: renderInline(section.text) };
   }
@@ -138,9 +149,9 @@ function buildAbout(doc: WpDoc): PageData {
     h1: doc.h1,
     blocks: [
       { type: "decor", image: imageKey(flower.src), alt: "" },
-      split(portrait, paragraphs.slice(0, 3).map(toRun), "right"),
-      split(wedding, paragraphs.slice(3, 6).map(toRun), "left"),
-      split(facts, [toRun(heading), toRun(list), ...paragraphs.slice(6).map(toRun)], "right"),
+      split(portrait, paragraphs.slice(0, 3).flatMap(toRuns), "right"),
+      split(wedding, paragraphs.slice(3, 6).flatMap(toRuns), "left"),
+      split(facts, [toRun(heading), toRun(list), ...paragraphs.slice(6).flatMap(toRuns)], "right"),
     ],
   };
 }
@@ -158,7 +169,7 @@ function buildTenacious(doc: WpDoc): PageData {
     seo: seo(doc, imageKey(photo.src)),
     h1: doc.h1,
     blocks: [
-      split(photo, [toRun(heading), ...paragraphs.map(toRun)], "right"),
+      split(photo, [toRun(heading), ...paragraphs.flatMap(toRuns)], "right"),
       { type: "wp", runs: [toRun(cta)] },
     ],
   };
@@ -229,7 +240,7 @@ function buildPost(doc: WpDoc): PageData {
         image: featuredKey,
         alt: resolveAlt(doc.featuredImage),
       },
-      { type: "wp", runs: doc.sections.map(toRun) },
+      { type: "wp", runs: doc.sections.flatMap(toRuns) },
       {
         type: "author",
         name: doc.author.name,
