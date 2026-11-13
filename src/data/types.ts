@@ -17,7 +17,8 @@ export interface Seo {
 
 export interface FaqItem {
   q: string;
-  a: string;
+  /** One paragraph, or several when a long answer is split between sentences. */
+  a: string | string[];
 }
 
 export interface ImageData {
@@ -110,11 +111,11 @@ export interface ArticleMeta {
 }
 
 export type Block =
-  | { type: "intro"; text: string }
+  | { type: "intro"; text: string | string[] }
   | { type: "plain"; text: string }
   | { type: "quote"; quote: string; paragraphs: string[] }
   | { type: "cards"; bg: Background; eyebrow: string; heading: string; intro?: string; cards: CardData[]; columns?: 2 }
-  | { type: "checklist"; bg: Background; eyebrow: string; heading: string; intro: string; items: string[] }
+  | { type: "checklist"; bg: Background; eyebrow: string; heading: string; intro: string | string[]; items: string[] }
   | { type: "article"; items: ArticleItem[] }
   | {
       type: "split-list";
@@ -123,10 +124,10 @@ export type Block =
       items: { title: string; body: string }[];
       image: ImageData;
     }
-  | { type: "differentiators"; bg: Background; eyebrow: string; heading: string; items: { title: string; body: string }[] }
+  | { type: "differentiators"; bg: Background; eyebrow: string; heading: string; items: { title: string; body: string | string[] }[] }
   | { type: "team"; bg: Background; eyebrow: string; heading: string; members: TeamMember[] }
   | { type: "faq"; bg: Background; eyebrow: string; heading: string; items: FaqItem[]; ctaLabel?: string }
-  | { type: "band"; heading: string; text: string; list?: string[] }
+  | { type: "band"; heading: string; text: string | string[]; list?: string[] }
   | { type: "related"; eyebrow: string; heading: string; cards: RelatedCard[] }
   | { type: "notice"; bg: Background; text: string }
   | { type: "booking" }

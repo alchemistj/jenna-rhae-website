@@ -34,7 +34,10 @@ const page = {
       eyebrow: "What We Do",
       heading: "What Does Christian Life Coaching in Kansas City Include?",
       intro:
-        "Coaching with Jenna in Kansas City is the same faith-integrated, whole-woman approach available online — with the added option of meeting in person. Whether you prefer a coffee shop conversation or a quiet, private setting, the work is the same: helping you understand your survival patterns, rebuild your identity, and find a way of living that feels genuinely safe.",
+        [
+        "Coaching with Jenna in Kansas City is the same faith-integrated, whole-woman approach available online — with the added option of meeting in person.",
+        "Whether you prefer a coffee shop conversation or a quiet, private setting, the work is the same: helping you understand your survival patterns, rebuild your identity, and find a way of living that feels genuinely safe.",
+      ],
       items: [
         "In-person coaching sessions in Kansas City, MO",
         "Online sessions for Kansas City clients who prefer video",
@@ -54,8 +57,10 @@ const page = {
         {
           heading: "Why Work With a Christian Life Coach in Kansas City?",
           paragraphs: [
-            "For many women, the healing journey feels more grounded when it happens in person — face to face, in a space that feels safe and unhurried. Jenna is Kansas City-based and available to meet locally with clients who want that kind of connection. There is no office pressure, no clinical environment. Just an honest conversation about where you are and where you want to go.",
-            "Kansas City has no shortage of therapists and coaches — but faith-integrated coaching that specifically addresses survival mode, nervous system healing, and Biblical identity is a distinct lane. Jenna brings credentialed training (MA, Certified Biblical Counselor, Light University) alongside a deeply personal understanding of the exhaustion her clients carry.",
+            "For many women, the healing journey feels more grounded when it happens in person — face to face, in a space that feels safe and unhurried. Jenna is Kansas City-based and available to meet locally with clients who want that kind of connection.",
+            "There is no office pressure, no clinical environment. Just an honest conversation about where you are and where you want to go.",
+            "Kansas City has no shortage of therapists and coaches — but faith-integrated coaching that specifically addresses survival mode, nervous system healing, and Biblical identity is a distinct lane.",
+            "Jenna brings credentialed training (MA, Certified Biblical Counselor, Light University) alongside a deeply personal understanding of the exhaustion her clients carry.",
           ],
           image: {
             image: "jenna",
@@ -94,7 +99,10 @@ const page = {
         },
         {
           title: "The Pace Is Yours",
-          body: "There is no program clock. No pressure to hit milestones on someone else's timeline. Healing moves at the speed your nervous system can hold — whether that's a weekly in-person session or a bi-weekly video call.",
+          body: [
+            "There is no program clock. No pressure to hit milestones on someone else's timeline.",
+            "Healing moves at the speed your nervous system can hold — whether that's a weekly in-person session or a bi-weekly video call.",
+          ],
         },
         {
           title: "The First Conversation Is Free",

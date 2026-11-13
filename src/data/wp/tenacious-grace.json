@@ -30,7 +30,10 @@
     },
     {
       "type": "p",
-      "text": "With so much information on how to lose weight, have you found anything that helps you understand why emotional eating is a struggle for you to begin with? **Have you wondered if others struggle with food the same way you do?** You’re not alone in the confusing and frustrating tug of war with food."
+      "text": [
+        "With so much information on how to lose weight, have you found anything that helps you understand why emotional eating is a struggle for you to begin with?",
+        "**Have you wondered if others struggle with food the same way you do?** You’re not alone in the confusing and frustrating tug of war with food."
+      ]
     },
     {
       "type": "p",

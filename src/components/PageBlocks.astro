@@ -24,6 +24,9 @@ import DeferredIframe from "./DeferredIframe.astro";
 import { QUIZ_URL } from "../lib/site";
 import { bookLabel } from "../data/site";
 
+/** A copy field is one paragraph, or several when a long one is split between sentences. */
+const paras = (value: string | string[]) => (Array.isArray(value) ? value : [value]);
+
 interface Props {
   page: PageData;
   bookHref: string;
@@ -63,7 +66,9 @@ let blogPhotos = 0;
         case "intro":
           return (
             <Section>
-              <p class="soft mx-auto max-w-2xl text-center text-lg leading-relaxed">{block.text}</p>
+              {paras(block.text).map((text, i) => (
+                <p class:list={["soft mx-auto max-w-2xl text-center text-lg leading-relaxed", i > 0 && "mt-4"]}>{text}</p>
+              ))}
             </Section>
           );
 
@@ -113,7 +118,9 @@ let blogPhotos = 0;
           return (
             <Section bg={block.bg}>
               <SectionHeader eyebrow={block.eyebrow} heading={block.heading} class="mb-8" />
-              <p class="soft mx-auto mb-10 max-w-2xl text-center">{block.intro}</p>
+              {paras(block.intro).map((text, i, all) => (
+                <p class:list={["soft mx-auto max-w-2xl text-center", i > 0 && "mt-4", i === all.length - 1 && "mb-10"]}>{text}</p>
+              ))}
               <ul class="mx-auto grid max-w-3xl gap-x-8 gap-y-3 md:grid-cols-2">
                 {block.items.map((item) => (
                   <li class="flex gap-3">
@@ -175,7 +182,9 @@ let blogPhotos = 0;
                 {block.items.map((item) => (
                   <div class="card">
                     <h3 class="mb-2 font-display text-xl font-bold text-accent">{item.title}</h3>
-                    <p class="card-soft text-[15px]">{item.body}</p>
+                    {paras(item.body).map((text, i) => (
+                      <p class:list={["card-soft text-[15px]", i > 0 && "mt-3"]}>{text}</p>
+                    ))}
                   </div>
                 ))}
               </div>
@@ -242,7 +251,9 @@ let blogPhotos = 0;
             <Section bg="charcoal">
               <div class="mx-auto max-w-2xl text-center">
                 <h2 class="mb-5 text-cream">{block.heading}</h2>
-                <p class:list={["soft", block.list && "mb-8"]}>{block.text}</p>
+                {paras(block.text).map((text, i, all) => (
+                  <p class:list={["soft", i > 0 && "mt-4", block.list && i === all.length - 1 && "mb-8"]}>{text}</p>
+                ))}
                 {block.list && (
                   <ul class="mx-auto grid max-w-md grid-cols-2 gap-x-6 gap-y-2 text-left">
                     {block.list.map((item) => (

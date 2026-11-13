@@ -26,7 +26,8 @@ const page = {
       type: "quote",
       quote: "“You're functioning — but you're not fully living.”",
       paragraphs: [
-        "You look capable from the outside. You show up, you hold it together, you carry what needs carrying. But internally — you're exhausted in a way that sleep doesn't fix. Your nervous system is still running the survival patterns it learned long ago. And somewhere underneath all of it, you're quietly wondering: <em>Why can't I just relax? Why does rest feel unsafe? Why am I still like this?</em>",
+        "You look capable from the outside. You show up, you hold it together, you carry what needs carrying. But internally — you're exhausted in a way that sleep doesn't fix.",
+        "Your nervous system is still running the survival patterns it learned long ago. And somewhere underneath all of it, you're quietly wondering: <em>Why can't I just relax? Why does rest feel unsafe? Why am I still like this?</em>",
         "The answer isn't weakness. It isn't a lack of faith. Your body learned survival — and it can gently learn safety again. That's the work we do here.",
       ],
     },
@@ -134,7 +135,10 @@ const page = {
       items: [
         {
           q: "What is Christian life coaching and how is it different from therapy?",
-          a: "Christian life coaching is a forward-focused, faith-integrated process that helps you identify patterns, clarify purpose, and build practical tools for healing and growth. Unlike therapy, coaching does not diagnose or treat mental illness — it walks alongside you as you move toward the life you want. Jenna is a Certified Biblical Counselor, not a licensed therapist — if clinical care is needed, she will help you find the right support.",
+          a: [
+            "Christian life coaching is a forward-focused, faith-integrated process that helps you identify patterns, clarify purpose, and build practical tools for healing and growth.",
+            "Unlike therapy, coaching does not diagnose or treat mental illness — it walks alongside you as you move toward the life you want. Jenna is a Certified Biblical Counselor, not a licensed therapist — if clinical care is needed, she will help you find the right support.",
+          ],
         },
         {
           q: "Do I have to be a Christian to work with Jenna?",
@@ -142,7 +146,10 @@ const page = {
         },
         {
           q: "What does “leaving survival mode” actually mean?",
-          a: "Survival mode is what your nervous system learned when safety wasn't guaranteed — hypervigilance, over-responsibility, emotional numbness, inability to rest. Leaving survival mode means gently teaching your body, mind, and soul that it is safe to slow down, set boundaries, receive care, and be fully present. It is not a quick fix — it is a whole-woman transformation.",
+          a: [
+            "Survival mode is what your nervous system learned when safety wasn't guaranteed — hypervigilance, over-responsibility, emotional numbness, inability to rest.",
+            "Leaving survival mode means gently teaching your body, mind, and soul that it is safe to slow down, set boundaries, receive care, and be fully present. It is not a quick fix — it is a whole-woman transformation.",
+          ],
         },
         {
           q: "How does online coaching work?",
