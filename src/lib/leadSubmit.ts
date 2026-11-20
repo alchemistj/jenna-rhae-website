@@ -81,6 +81,7 @@ export function buildLeadBody(
   startedAt: number,
   env: Pick<LeadEnv, "href" | "referrer" | "search" | "now" | "cookie">,
   labels: LeadLabels = DEFAULT_LABELS,
+  options: { includeSms?: boolean } = {},
 ): LeadBody {
   const t = (v: string) => v.trim();
   const q = new URLSearchParams(env.search);
@@ -88,7 +89,9 @@ export function buildLeadBody(
   if (t(fields.howHeard)) {
     customFields.howHeard = { label: labels.howHeard, value: t(fields.howHeard), type: "text" };
   }
-  customFields.smsConsent = { label: labels.smsConsent, value: fields.smsConsent ? "Yes" : "No", type: "text" };
+  if (options.includeSms !== false) {
+    customFields.smsConsent = { label: labels.smsConsent, value: fields.smsConsent ? "Yes" : "No", type: "text" };
+  }
   return {
     siteKey: FORMS.siteKey,
     formKey: FORMS.formKey,
@@ -119,7 +122,11 @@ export function buildLeadBody(
   };
 }
 
-export function createLeadSubmitter(env: LeadEnv, labels: LeadLabels = DEFAULT_LABELS) {
+export function createLeadSubmitter(
+  env: LeadEnv,
+  labels: LeadLabels = DEFAULT_LABELS,
+  options: { includeSms?: boolean } = {},
+) {
   let attemptId: string | null = null;
 
   return {
@@ -130,7 +137,7 @@ export function createLeadSubmitter(env: LeadEnv, labels: LeadLabels = DEFAULT_L
     async submit(fields: LeadFields, startedAt: number): Promise<LeadResult> {
       if (!isProductionHost(env.hostname)) return { kind: "not_production" };
       attemptId ??= env.uuid();
-      const body = buildLeadBody(fields, attemptId, startedAt, env, labels);
+      const body = buildLeadBody(fields, attemptId, startedAt, env, labels, options);
       const ctl = new AbortController();
       const timer = setTimeout(() => ctl.abort(), REQUEST_TIMEOUT_MS);
       try {

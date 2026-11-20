@@ -3,6 +3,7 @@
  * The hero photo, first element in <body>. One final AVIF inlined once as a data URI (35 to 60 KB), a real <img>,
  * eager, high priority, sync decoding, with real width and height. No preload, no placeholder, no fade.
  * The scrim comes after the <img> in source, so nothing paints ahead of the photo.
+ * The scrim is a gradient behind the text, not a full dark overlay.
  */
 import { getHeroPhoto } from "../lib/inlineImage";
 import type { ImageKey } from "../lib/images";
@@ -11,11 +12,10 @@ interface Props {
   image: ImageKey;
   alt: string;
   objectPosition?: string;
-  /** 0 to 100 */
-  overlayOpacity?: number;
 }
-const { image, alt, objectPosition = "center top", overlayOpacity = 55 } = Astro.props;
-const photo = await getHeroPhoto(`${image}.jpg`);
+const { image, alt, objectPosition = "center center" } = Astro.props;
+const heroFile = image === "hero-home" ? "hero-home-wheat.jpg" : `${image}.jpg`;
+const photo = await getHeroPhoto(heroFile);
 ---
 
 <img
@@ -30,4 +30,4 @@ const photo = await getHeroPhoto(`${image}.jpg`);
   data-ff-lcp-hero
   style={`object-position: ${objectPosition}`}
 />
-<div class="atf-scrim" style={`background-color: rgb(28 28 28 / ${overlayOpacity / 100})`} aria-hidden="true"></div>
+<div class="atf-scrim" aria-hidden="true"></div>

@@ -13,7 +13,8 @@ const page = {
   },
   hero: {
     image: "hero-home",
-    imageAlt: "Woman standing in warm golden light at peace — Jenna White Christian Life Coach",
+    imageAlt: "Woman walking through a golden wheat field at sunset",
+    objectPosition: "93% center",
     eyebrow: "Faith-Integrated Coaching",
     title: "Christian Life Coach — Jenna White",
     subtitleBold: "You're not broken. You're stuck in survival mode.",
@@ -31,6 +32,7 @@ const page = {
         "The answer isn't weakness. It isn't a lack of faith. Your body learned survival — and it can gently learn safety again. That's the work we do here.",
       ],
     },
+    { type: "decor", image: "wp-flower-icon", alt: "" },
     { type: "booking" },
     {
       type: "cards",
@@ -71,18 +73,23 @@ const page = {
           title: "Tenacious Grace — Emotional Eating Healing",
           body: "Heal the relationship between food, emotion, and body — without shame and without performance.",
           href: "/tenacious-grace/",
+          linkLabel: "Learn More →",
         },
         {
           title: "Free Trauma Clarity Test",
           body: "A short, honest self-reflection to help you see what your nervous system has been quietly carrying.",
           href: "/free-trauma-test/",
+          linkLabel: "Learn More →",
         },
         {
           title: "Free Consultation Call",
           body: "An unhurried conversation about where you are and whether coaching together makes sense.",
+          href: "/contact/#book",
+          linkLabel: "Learn More →",
         },
       ],
     },
+    { type: "decor", image: "wp-flower-icon", alt: "" },
     {
       type: "split-list",
       eyebrow: "Why Jenna",
@@ -106,10 +113,13 @@ const page = {
         },
       ],
       image: {
-        image: "jenna",
+        image: "coach-jenna",
         alt: "Jenna White, MA — Christian Life Coach and Certified Biblical Counselor",
+        objectPosition: "center 20%",
+        frame: "portrait",
       },
     },
+    { type: "decor", image: "wp-flower-icon", alt: "" },
     {
       type: "team",
       bg: "gold",

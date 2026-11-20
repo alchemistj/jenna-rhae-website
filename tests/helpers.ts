@@ -73,4 +73,5 @@ export const NON_COPY_KEYS = new Set([
   "objectPosition",
   "side",
   "columns",
+  "frame",
 ]);

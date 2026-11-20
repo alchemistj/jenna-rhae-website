@@ -6,6 +6,7 @@
  */
 import { Image } from "astro:assets";
 import { getImageMeta, type ImageKey } from "../lib/images";
+import type { PhotoFrame } from "../data/types";
 
 interface Props {
   image: ImageKey;
@@ -15,8 +16,18 @@ interface Props {
   /** On phones, show the photo above the text instead of below. */
   photoFirstOnMobile?: boolean;
   class?: string;
+  objectPosition?: string;
+  frame?: PhotoFrame;
 }
-const { image, alt, side = "right", photoFirstOnMobile = false, class: className } = Astro.props;
+const {
+  image,
+  alt,
+  side = "right",
+  photoFirstOnMobile = false,
+  class: className,
+  objectPosition,
+  frame = "fill",
+} = Astro.props;
 const meta = getImageMeta(image);
 const width = Math.min(720, meta.width);
 const widths = [400, 720].filter((w) => w < meta.width);
@@ -26,13 +37,15 @@ widths.push(meta.width <= 720 ? meta.width : 720);
 <div
   class:list={[
     "two-col",
+    frame === "portrait" && "frame-portrait",
+    frame === "contain" && "frame-contain",
     side === "left" && "photo-left",
     photoFirstOnMobile && "mobile-photo-first",
     className,
   ]}
 >
   <div><slot /></div>
-  <div class="two-col-photo">
+  <div class="two-col-photo" style={objectPosition ? `--photo-pos: ${objectPosition}` : undefined}>
     <Image
       src={meta}
       alt={alt}

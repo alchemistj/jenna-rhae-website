@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { pages } from "../src/data/pages";
 import * as site from "../src/data/site";
+import { legalFinal } from "../src/data/site";
 import { collectStrings, decodeEntities, NON_COPY_KEYS, normalize, readPage, textOf } from "./helpers";
 
 /**
@@ -14,10 +15,14 @@ function check(strings: { key: string; value: string }[], html: string) {
   const missing: string[] = [];
   for (const { key, value } of strings) {
     if (NON_COPY_KEYS.has(key)) continue;
-    const plain = normalize(value.replace(/<[^>]+>/g, ""));
-    const asMarkup = normalize(value);
+    // Item 18 replaces the hand-typed wordmark with the butterfly logo. The string stays in site.ts.
+    if (key === "wordmark") continue;
+    if (!legalFinal && (key === "smsFieldLabel" || key === "lead")) continue;
+    const shown = key === "copyright" ? value.replace(/\b20\d{2}\b/, String(new Date().getFullYear())) : value;
+    const plain = normalize(shown.replace(/<[^>]+>/g, ""));
+    const asMarkup = normalize(shown);
     if (!text.includes(plain) && !raw.includes(asMarkup) && !raw.includes(plain)) {
-      missing.push(`${key}: ${value}`);
+      missing.push(`${key}: ${shown}`);
     }
   }
   return missing;

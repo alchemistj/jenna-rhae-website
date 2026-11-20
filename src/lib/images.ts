@@ -1,5 +1,6 @@
 import type { ImageMetadata } from "astro";
-import heroHome from "../assets/hero-home.jpg";
+import heroHome from "../assets/hero-home-wheat.jpg";
+import aboutBeach from "../assets/about-beach.jpg";
 import heroTrauma from "../assets/hero-trauma.jpg";
 import heroKc from "../assets/hero-kc.jpg";
 import heroContact from "../assets/hero-contact.jpg";
@@ -24,6 +25,7 @@ import wpIsGriefTrauma from "../assets/wp/is-grief-trauma.jpg";
 /** Every site image is a local file in src/assets, optimized at build time. Data files refer to them by key. */
 export const images = {
   "hero-home": heroHome,
+  "about-beach": aboutBeach,
   "hero-trauma": heroTrauma,
   "hero-kc": heroKc,
   "hero-contact": heroContact,

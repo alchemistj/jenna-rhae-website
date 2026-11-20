@@ -17,8 +17,8 @@ import DeferredIframe from "./DeferredIframe.astro";
 
 <Section id={BOOKING_ANCHOR} bg="cream" compact>
   <div class="mx-auto max-w-3xl">
-    {booking.eyebrow && <div class="eyebrow mb-3 text-center">{booking.eyebrow}</div>}
-    <h2 class="mb-8 text-center">{booking.heading}</h2>
+    {booking.eyebrow && <p class="eyebrow mb-3 text-center">{booking.eyebrow}</p>}
+    <h2 class="heading-rule mb-8 text-center">{booking.heading}</h2>
     <DeferredIframe
       src={BOOKING_URL}
       title={booking.iframeTitle}
@@ -28,6 +28,7 @@ import DeferredIframe from "./DeferredIframe.astro";
       bare
       autosize
       frameId={BOOKING_FRAME_ID}
+      placeholderLabel={booking.heading}
     />
   </div>
 </Section>

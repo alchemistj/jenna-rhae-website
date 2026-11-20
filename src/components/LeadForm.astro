@@ -7,6 +7,7 @@
  * - Fires GA4 generate_lead once per stored lead (never for duplicates).
  */
 import type { FormCopy } from "../data/types";
+import { showSmsConsent } from "../data/site";
 import { isContactHref } from "../lib/measurement/contactHref";
 import { EMAIL, MAILTO } from "../lib/site";
 import Section from "./Section.astro";
@@ -17,13 +18,14 @@ interface Props {
 }
 const { form, bookHref } = Astro.props;
 const bookLocation = isContactHref(bookHref) ? "main" : undefined;
+const sms = showSmsConsent();
 ---
 
 <Section id="contact-form">
-  <div class="mx-auto max-w-2xl">
-    <div class="mb-8 text-center">
-      <div class="eyebrow mb-3">{form.eyebrow}</div>
-      <h2>{form.heading}</h2>
+  <div class="mx-auto max-w-[44rem]">
+      <div class="mb-8 text-center">
+      <p class="eyebrow mb-3">{form.eyebrow}</p>
+      <h2 class="heading-rule">{form.heading}</h2>
     </div>
 
     <form
@@ -32,7 +34,8 @@ const bookLocation = isContactHref(bookHref) ? "main" : undefined;
       data-sending={form.sending}
       data-submit-label={form.submit}
       data-how-heard-label={form.howHeardFieldLabel}
-      data-sms-label={form.smsFieldLabel}
+      data-sms-label={sms ? form.smsFieldLabel : undefined}
+      data-include-sms={sms ? "true" : "false"}
       autocomplete="on"
     >
       <div class="grid gap-4 md:grid-cols-2">
@@ -104,23 +107,27 @@ const bookLocation = isContactHref(bookHref) ? "main" : undefined;
         <input id="lead-website-url" name="website_url" type="text" tabindex="-1" autocomplete="off" />
       </div>
 
-      <div class="flex items-start gap-3">
-        <input id="lead-sms-consent" name="sms_consent" type="checkbox" class="mt-1 h-5 w-5 shrink-0 accent-accent" />
-        <label for="lead-sms-consent" class="text-sm soft">
-          {form.smsConsent.lead}
-          {
-            form.smsConsent.links.map((link, index) => (
-              <>
-                {" "}
-                <a href={link.href} class="link-accent underline">
-                  {link.label}
-                </a>
-                {index < form.smsConsent.links.length - 1 ? "," : "."}
-              </>
-            ))
-          }
-        </label>
-      </div>
+      {
+        sms && (
+          <div class="flex items-start gap-3">
+            <input id="lead-sms-consent" name="sms_consent" type="checkbox" class="mt-1 h-5 w-5 shrink-0 accent-accent" />
+            <label for="lead-sms-consent" class="soft text-[15px] leading-relaxed">
+              {form.smsConsent.lead}
+              {
+                form.smsConsent.links.map((link, index) => (
+                  <>
+                    {" "}
+                    <a href={link.href} class="link-accent underline">
+                      {link.label}
+                    </a>
+                    {index < form.smsConsent.links.length - 1 ? "," : "."}
+                  </>
+                ))
+              }
+            </label>
+          </div>
+        )
+      }
 
       <div class="pt-2">
         <button type="submit" class="btn-accent w-full disabled:opacity-60 md:w-auto" data-submit disabled>
@@ -200,6 +207,7 @@ const bookLocation = isContactHref(bookHref) ? "main" : undefined;
     const sendingLabel = form.dataset.sending ?? submitLabel;
     const howHeardLabel = form.dataset.howHeardLabel ?? "";
     const smsLabel = form.dataset.smsLabel ?? "";
+    const includeSms = form.dataset.includeSms === "true";
 
     const show = (kind: string | null) => {
       for (const el of messages) el.hidden = el.dataset.msg !== kind;
@@ -222,6 +230,7 @@ const bookLocation = isContactHref(bookHref) ? "main" : undefined;
         uuid: () => crypto.randomUUID(),
       },
       { howHeard: howHeardLabel, smsConsent: smsLabel },
+      { includeSms },
     );
 
     // Time the form became usable. Central Forms treats a submit under 2 seconds after this as a spam signal.
@@ -249,7 +258,7 @@ const bookLocation = isContactHref(bookHref) ? "main" : undefined;
             phone: text("phone"),
             message: text("message"),
             howHeard: text("how_heard"),
-            smsConsent: data.get("sms_consent") !== null,
+            smsConsent: includeSms && data.get("sms_consent") !== null,
             honeypot: text("website_url"),
           },
           startedAt,

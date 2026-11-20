@@ -2,7 +2,8 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { pages } from "../src/data/pages";
-import { buildLlms, buildRobots, buildSitemap } from "../src/lib/seoFiles";
+import { legalFinal, showSmsConsent } from "../src/data/site";
+import { buildLlms, buildRobots, buildSitemap, indexedRoutes } from "../src/lib/seoFiles";
 import { isPublished, pendingRoutes, publishedRoutes, routes } from "../src/lib/routeRegistry";
 import { DIST, allPageHtml, pageFile, walk } from "./helpers";
 
@@ -54,10 +55,15 @@ describe("sitemap.xml, robots.txt and llms.txt agree with the registry", () => {
   const sitemap = readFileSync(path.join(DIST, "sitemap.xml"), "utf8");
   const robots = readFileSync(path.join(DIST, "robots.txt"), "utf8");
   const llms = readFileSync(path.join(DIST, "llms.txt"), "utf8");
-  const expected = publishedRoutes.map((r) => `https://jennarhae.com${r.path}`).sort();
+  const expected = indexedRoutes().map((r) => `https://jennarhae.com${r.path}`).sort();
 
-  it("sitemap lists exactly the published routes", () => {
+  it("sitemap lists the indexable routes", () => {
     expect(locs(sitemap).sort()).toEqual(expected);
+    if (!legalFinal) {
+      for (const path of ["/privacy/", "/terms/", "/text-messaging-terms/"]) {
+        expect(sitemap).not.toContain(`https://jennarhae.com${path}`);
+      }
+    }
     for (const p of WORDPRESS) expect(sitemap).toContain(`https://jennarhae.com${p}`);
     expect(sitemap).toBe(buildSitemap());
   });
@@ -68,12 +74,33 @@ describe("sitemap.xml, robots.txt and llms.txt agree with the registry", () => {
     expect(robots).not.toMatch(/Disallow:\s*\/\s*$/m);
   });
 
-  it("llms.txt lists exactly the published routes", () => {
+  it("llms.txt lists the indexable routes", () => {
     const urls = Array.from(llms.matchAll(/\]\((https:\/\/jennarhae\.com[^)]*)\)/g), (m) => m[1]!);
     expect(urls.sort()).toEqual(expected);
     for (const p of WORDPRESS) expect(llms).toContain(`https://jennarhae.com${p}`);
     const descriptions = Object.fromEntries(Object.values(pages).map((p) => [p.path, p.seo.description]));
     expect(llms).toBe(buildLlms(descriptions));
+  });
+});
+
+describe("legal flag", () => {
+  const descriptions = Object.fromEntries(Object.values(pages).map((p) => [p.path, p.seo.description]));
+  const legal = ["/privacy/", "/terms/", "/text-messaging-terms/"];
+
+  it("hides legal URLs and SMS consent while the flag is false, and brings all three back when it is true", () => {
+    const hiddenSitemap = buildSitemap(publishedRoutes, false);
+    const hiddenLlms = buildLlms(descriptions, publishedRoutes, false);
+    const shownSitemap = buildSitemap(publishedRoutes, true);
+    const shownLlms = buildLlms(descriptions, publishedRoutes, true);
+    for (const path of legal) {
+      expect(hiddenSitemap).not.toContain(`https://jennarhae.com${path}`);
+      expect(hiddenLlms).not.toContain(`https://jennarhae.com${path}`);
+      expect(shownSitemap).toContain(`https://jennarhae.com${path}`);
+      expect(shownLlms).toContain(`https://jennarhae.com${path}`);
+    }
+    expect(showSmsConsent(false)).toBe(false);
+    expect(showSmsConsent(true)).toBe(true);
+    expect(showSmsConsent()).toBe(legalFinal);
   });
 });
 

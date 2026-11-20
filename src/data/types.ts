@@ -21,9 +21,13 @@ export interface FaqItem {
   a: string | string[];
 }
 
+export type PhotoFrame = "fill" | "portrait" | "contain";
+
 export interface ImageData {
   image: ImageKey;
   alt: string;
+  objectPosition?: string;
+  frame?: PhotoFrame;
 }
 
 export interface HeroMeta {
@@ -38,15 +42,17 @@ export interface HeroData {
   imageAlt: string;
   /** CSS object-position for the one inline photo. */
   objectPosition?: string;
-  /** 0 to 100. */
+  /** 0 to 100. Kept for older heroes; the scrim is a text-side gradient. */
   overlayOpacity?: number;
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
-  /** First line is bold, the rest are normal paragraphs. */
-  subtitleBold: string;
-  subtitle: string;
-  ctaLabel: string;
+  /** First line is bold, the rest are normal paragraphs. Omitted on title-only heroes. */
+  subtitleBold?: string;
+  subtitle?: string;
+  ctaLabel?: string;
   meta?: HeroMeta[];
+  /** Red flower icon beside the title. */
+  flower?: boolean;
 }
 
 export interface CardData {
@@ -133,14 +139,22 @@ export type Block =
   | { type: "booking" }
   | { type: "lead-form" }
   | { type: "final-cta"; quote: string; ctaLabel: string }
+  | { type: "final-band" }
   | { type: "decor"; image: ImageKey; alt: string }
   | { type: "wp"; runs: WpRun[] }
-  | { type: "wp-split"; image: ImageKey; alt: string; side: "right" | "left"; runs: WpRun[] }
+  | {
+      type: "wp-split";
+      image: ImageKey;
+      alt: string;
+      side: "right" | "left";
+      runs: WpRun[];
+      objectPosition?: string;
+      frame?: PhotoFrame;
+    }
   | { type: "quiz"; title: string; noscriptLabel: string }
   | { type: "blog-list"; posts: BlogListItem[] }
   | { type: "post-meta"; date: string; readingTime: string; authorName: string; image: ImageKey; alt: string }
-  | { type: "author"; name: string; bioHtml: string; image: ImageKey; alt: string }
-  | { type: "closing-book" };
+  | { type: "author"; name: string; bioHtml: string; image: ImageKey; alt: string };
 
 export interface FormCopy {
   eyebrow: string;

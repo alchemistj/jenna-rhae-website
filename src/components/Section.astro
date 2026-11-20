@@ -9,13 +9,16 @@ interface Props {
   bg?: Background;
   id?: string;
   class?: string;
+  /** Replaces the default section padding when a band needs its own spacing. */
+  outerClass?: string;
   /** Tighter vertical padding for short bands. */
   compact?: boolean;
 }
-const { bg = "cream", id, class: className, compact = false } = Astro.props;
+const { bg = "cream", id, class: className, outerClass, compact = false } = Astro.props;
+const pad = outerClass ? "" : compact ? "py-12" : "py-16 md:py-24";
 ---
 
-<section id={id} class:list={["w-full", `band-${bg}`, compact ? "py-12" : "py-16 md:py-24"]}>
+<section id={id} class:list={["w-full", `band-${bg}`, pad, outerClass]}>
   <div class:list={["container-narrow", className]}>
     <slot />
   </div>

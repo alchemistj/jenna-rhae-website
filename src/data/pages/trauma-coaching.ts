@@ -12,7 +12,8 @@ const page = {
   },
   hero: {
     image: "hero-trauma",
-    imageAlt: "Woman seated near a window in soft light — trauma recovery coaching with Jenna White",
+    imageAlt: "Woman seated near a window in soft light",
+    objectPosition: "68% center",
     eyebrow: "Trauma Recovery Coaching",
     title: "Trauma Recovery Coach — Jenna White",
     subtitleBold: "Your body learned survival to protect you. Now it can gently learn safety.",
@@ -173,6 +174,7 @@ const page = {
         { title: "Free Consultation Call", linkLabel: "Book Now →", href: "book" },
       ],
     },
+    { type: "final-band" },
   ],
 } satisfies PageData;
 

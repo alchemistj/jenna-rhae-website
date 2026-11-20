@@ -9,6 +9,7 @@ import type { PageData } from "../data/types";
 import { getImageMeta } from "../lib/images";
 import { isPublished } from "../lib/routeRegistry";
 import { isContactHref } from "../lib/measurement/contactHref";
+import { lockHeading } from "../lib/heading";
 import Section from "./Section.astro";
 import SectionHeader from "./SectionHeader.astro";
 import TwoColumn from "./TwoColumn.astro";
@@ -22,10 +23,17 @@ import WpRuns from "./WpRuns.astro";
 import WpFigure from "./WpFigure.astro";
 import DeferredIframe from "./DeferredIframe.astro";
 import { QUIZ_URL } from "../lib/site";
-import { bookLabel } from "../data/site";
 
 /** A copy field is one paragraph, or several when a long one is split between sentences. */
 const paras = (value: string | string[]) => (Array.isArray(value) ? value : [value]);
+
+function linkedHref(href: string | undefined): boolean {
+  if (!href) return false;
+  if (href.startsWith("https://")) return true;
+  const path = href.split("#")[0] || "/";
+  const normalized = path.endsWith("/") ? path : `${path}/`;
+  return isPublished(normalized);
+}
 
 interface Props {
   page: PageData;
@@ -37,14 +45,17 @@ const { page, bookHref } = Astro.props;
 let photoSections = 0;
 const nextSide = () => (photoSections++ % 2 === 0 ? "right" : "left");
 const onlyPlain = page.h1 !== undefined && page.blocks.every((block) => block.type === "plain");
-let blogPhotos = 0;
+const h1InBlock =
+  page.blocks.some((block) => block.type === "post-meta" || block.type === "quiz") ||
+  page.path === "/tenacious-grace/";
+let aboutSplits = 0;
 ---
 
 {
   onlyPlain && (
     <Section>
-      <div class="mx-auto max-w-2xl">
-        <h1 class="mb-6">{page.h1}</h1>
+      <div class="mx-auto max-w-[44rem]">
+        <h1 class="mb-6">{lockHeading(page.h1 ?? "")}</h1>
         {page.blocks.map((block) => block.type === "plain" && <p class="soft italic">{block.text}</p>)}
       </div>
     </Section>
@@ -52,9 +63,9 @@ let blogPhotos = 0;
 }
 
 {
-  page.h1 && !onlyPlain && (
+  page.h1 && !onlyPlain && !page.hero && !h1InBlock && (
     <Section compact>
-      <h1>{page.h1}</h1>
+      <h1>{lockHeading(page.h1)}</h1>
     </Section>
   )
 }
@@ -67,7 +78,7 @@ let blogPhotos = 0;
           return (
             <Section>
               {paras(block.text).map((text, i) => (
-                <p class:list={["soft mx-auto max-w-2xl text-center text-lg leading-relaxed", i > 0 && "mt-4"]}>{text}</p>
+                <p class:list={["soft mx-auto max-w-[44rem]", i > 0 && "mt-4"]}>{text}</p>
               ))}
             </Section>
           );
@@ -75,8 +86,8 @@ let blogPhotos = 0;
         case "quote":
           return (
             <Section>
-              <div class="mx-auto max-w-2xl text-center">
-                <p class="mb-6 font-display text-3xl font-bold leading-tight md:text-4xl">{block.quote}</p>
+              <div class="mx-auto max-w-[44rem]">
+                <p class="mb-6 text-center font-display text-3xl font-bold leading-tight md:text-4xl">{block.quote}</p>
                 {block.paragraphs.map((text, i) => (
                   <p class:list={["soft", i < block.paragraphs.length - 1 && "mb-5"]} set:html={text} />
                 ))}
@@ -88,26 +99,29 @@ let blogPhotos = 0;
           return (
             <Section bg={block.bg}>
               <SectionHeader eyebrow={block.eyebrow} heading={block.heading} />
-              {block.intro && <p class="soft mx-auto mb-12 max-w-2xl text-center">{block.intro}</p>}
-              <div class="grid gap-5 md:grid-cols-2">
+              {block.intro && <p class="soft mx-auto mb-12 max-w-[44rem]">{block.intro}</p>}
+              <div class="grid items-stretch gap-5 md:grid-cols-2">
                 {block.cards.map((card) => {
-                  const linked =
-                    card.href !== undefined && (card.href.startsWith("https://") || isPublished(card.href));
+                  const linked = linkedHref(card.href);
                   const inner = (
                     <>
-                      <h3 class="mb-2 font-display text-xl font-bold">{card.title}</h3>
-                      <p class="card-soft text-[15px]">{card.body}</p>
+                      <h3 class="mb-2">{lockHeading(card.title)}</h3>
+                      <p class="card-soft">{card.body}</p>
                       {linked && card.linkLabel && (
-                        <span class="link-accent mt-4 inline-block text-sm">{card.linkLabel}</span>
+                        <span class="link-accent mt-auto pt-4 text-sm">{card.linkLabel}</span>
                       )}
                     </>
                   );
                   return linked ? (
-                    <a href={card.href} class="card h-full" data-cta-location={isContactHref(card.href) ? "main" : undefined}>
+                    <a
+                      href={card.href}
+                      class="card flex h-full flex-col"
+                      data-cta-location={card.href && isContactHref(card.href) ? "main" : undefined}
+                    >
                       {inner}
                     </a>
                   ) : (
-                    <div class="card h-full">{inner}</div>
+                    <div class="card card-static flex h-full flex-col">{inner}</div>
                   );
                 })}
               </div>
@@ -119,9 +133,9 @@ let blogPhotos = 0;
             <Section bg={block.bg}>
               <SectionHeader eyebrow={block.eyebrow} heading={block.heading} class="mb-8" />
               {paras(block.intro).map((text, i, all) => (
-                <p class:list={["soft mx-auto max-w-2xl text-center", i > 0 && "mt-4", i === all.length - 1 && "mb-10"]}>{text}</p>
+                <p class:list={["soft mx-auto max-w-[44rem]", i > 0 && "mt-4", i === all.length - 1 && "mb-10"]}>{text}</p>
               ))}
-              <ul class="mx-auto grid max-w-3xl gap-x-8 gap-y-3 md:grid-cols-2">
+              <ul class="mx-auto grid max-w-[44rem] gap-x-8 gap-y-3 md:grid-cols-2">
                 {block.items.map((item) => (
                   <li class="flex gap-3">
                     <Icon name="check" size={20} class="mt-1 shrink-0 text-charcoal" />
@@ -138,15 +152,21 @@ let blogPhotos = 0;
               <div class="space-y-14">
                 {block.items.map((item) =>
                   item.image ? (
-                    <TwoColumn image={item.image.image} alt={item.image.alt} side={nextSide()}>
-                      <h2 class="mb-5">{item.heading}</h2>
+                    <TwoColumn
+                      image={item.image.image}
+                      alt={item.image.alt}
+                      side={nextSide()}
+                      objectPosition={item.image.objectPosition}
+                      frame={item.image.frame}
+                    >
+                      <h2 class="heading-rule mb-5">{lockHeading(item.heading)}</h2>
                       {item.paragraphs.map((text, i) => (
                         <p class:list={["soft", i < item.paragraphs.length - 1 && "mb-4"]} set:html={text} />
                       ))}
                     </TwoColumn>
                   ) : (
-                    <div>
-                      <h2 class="mb-5">{item.heading}</h2>
+                    <div class="mx-auto max-w-[44rem]">
+                      <h2 class="heading-rule mb-5">{lockHeading(item.heading)}</h2>
                       {item.paragraphs.map((text, i) => (
                         <p class:list={["soft", i < item.paragraphs.length - 1 && "mb-4"]} set:html={text} />
                       ))}
@@ -161,11 +181,18 @@ let blogPhotos = 0;
           return (
             <Section>
               <SectionHeader eyebrow={block.eyebrow} heading={block.heading} />
-              <TwoColumn image={block.image.image} alt={block.image.alt} side={nextSide()} photoFirstOnMobile>
+              <TwoColumn
+                image={block.image.image}
+                alt={block.image.alt}
+                side={nextSide()}
+                photoFirstOnMobile
+                objectPosition={block.image.objectPosition}
+                frame={block.image.frame ?? "portrait"}
+              >
                 <div class="space-y-7">
                   {block.items.map((item) => (
                     <div>
-                      <h3 class="mb-2 font-display text-xl font-bold text-accent">{item.title}</h3>
+                      <h3 class="mb-2 text-accent">{lockHeading(item.title)}</h3>
                       <p class="soft">{item.body}</p>
                     </div>
                   ))}
@@ -178,12 +205,12 @@ let blogPhotos = 0;
           return (
             <Section bg={block.bg}>
               <SectionHeader eyebrow={block.eyebrow} heading={block.heading} />
-              <div class="grid gap-8 md:grid-cols-2">
+              <div class="grid items-stretch gap-8 md:grid-cols-2">
                 {block.items.map((item) => (
-                  <div class="card">
-                    <h3 class="mb-2 font-display text-xl font-bold text-accent">{item.title}</h3>
+                  <div class="card flex h-full flex-col">
+                    <h3 class="mb-2 text-accent">{lockHeading(item.title)}</h3>
                     {paras(item.body).map((text, i) => (
-                      <p class:list={["card-soft text-[15px]", i > 0 && "mt-3"]}>{text}</p>
+                      <p class:list={["card-soft", i > 0 && "mt-3"]}>{text}</p>
                     ))}
                   </div>
                 ))}
@@ -195,12 +222,12 @@ let blogPhotos = 0;
           return (
             <Section bg={block.bg}>
               <SectionHeader eyebrow={block.eyebrow} heading={block.heading} />
-              <div class="grid gap-6 md:grid-cols-3">
+              <div class:list={["grid gap-6", block.members.length > 1 && "md:grid-cols-3"]}>
                 {block.members.map((member) => {
                   const meta = getImageMeta(member.image);
                   const linked = isPublished(member.href);
                   return (
-                    <div class="card text-center">
+                    <div class:list={["card text-center", block.members.length === 1 && "mx-auto w-full max-w-[360px]"]}>
                       <Image
                         src={meta}
                         alt={member.alt}
@@ -213,7 +240,7 @@ let blogPhotos = 0;
                         decoding="async"
                         class="mx-auto mb-4 h-32 w-32 rounded-full object-cover"
                       />
-                      <h3 class="font-display text-xl font-bold">{member.name}</h3>
+                      <h3>{lockHeading(member.name)}</h3>
                       <p class="card-soft mb-4 mt-2 min-h-[3rem] text-sm">{member.role}</p>
                       {linked ? (
                         <a href={member.href} class="btn-outline">
@@ -234,7 +261,7 @@ let blogPhotos = 0;
         case "faq":
           return (
             <Section bg={block.bg}>
-              <div class="mx-auto max-w-2xl">
+              <div class="mx-auto max-w-[44rem]">
                 <SectionHeader eyebrow={block.eyebrow} heading={block.heading} class="mb-8" />
                 <Faq items={block.items} />
                 {block.ctaLabel && (
@@ -248,17 +275,17 @@ let blogPhotos = 0;
 
         case "band":
           return (
-            <Section bg="charcoal">
-              <div class="mx-auto max-w-2xl text-center">
-                <h2 class="mb-5 text-cream">{block.heading}</h2>
+            <Section bg="gold">
+              <div class="mx-auto max-w-[44rem]">
+                <h2 class="heading-rule mb-5 text-center">{lockHeading(block.heading)}</h2>
                 {paras(block.text).map((text, i, all) => (
                   <p class:list={["soft", i > 0 && "mt-4", block.list && i === all.length - 1 && "mb-8"]}>{text}</p>
                 ))}
                 {block.list && (
-                  <ul class="mx-auto grid max-w-md grid-cols-2 gap-x-6 gap-y-2 text-left">
+                  <ul class="mx-auto grid max-w-[44rem] grid-cols-2 gap-x-6 gap-y-2">
                     {block.list.map((item) => (
                       <li class="flex gap-2">
-                        <span class="text-gold" aria-hidden="true">
+                        <span class="text-accent" aria-hidden="true">
                           •
                         </span>
                         <span>{item}</span>
@@ -274,23 +301,23 @@ let blogPhotos = 0;
           return (
             <Section>
               <SectionHeader eyebrow={block.eyebrow} heading={block.heading} />
-              <div class="grid gap-6 md:grid-cols-3">
+              <div class="grid items-stretch gap-6 md:grid-cols-3">
                 {block.cards.map((card) => {
                   const href = card.href === "book" ? bookHref : card.href;
                   const linked = card.href === "book" || isPublished(card.href);
                   const ctaLocation = isContactHref(href) ? "main" : undefined;
                   const inner = (
                     <>
-                      <h3 class="mb-2 font-display text-xl font-bold">{card.title}</h3>
-                      <span class="link-accent text-sm">{card.linkLabel}</span>
+                      <h3 class="mb-2">{lockHeading(card.title)}</h3>
+                      <span class="link-accent mt-auto pt-4 text-sm">{card.linkLabel}</span>
                     </>
                   );
                   return linked ? (
-                    <a href={href} class="card" data-cta-location={ctaLocation}>
+                    <a href={href} class="card flex h-full flex-col" data-cta-location={ctaLocation}>
                       {inner}
                     </a>
                   ) : (
-                    <div class="card">{inner}</div>
+                    <div class="card card-static flex h-full flex-col">{inner}</div>
                   );
                 })}
               </div>
@@ -300,7 +327,7 @@ let blogPhotos = 0;
         case "notice":
           return (
             <Section bg={block.bg} compact>
-              <p class="mx-auto max-w-2xl text-center text-lg leading-relaxed">{block.text}</p>
+              <p class="mx-auto max-w-[44rem]">{block.text}</p>
             </Section>
           );
 
@@ -311,34 +338,56 @@ let blogPhotos = 0;
           return page.form ? <LeadForm form={page.form} bookHref={bookHref} /> : null;
 
         case "final-cta":
-          return <FinalCta quote={block.quote} ctaLabel={block.ctaLabel} bookHref={bookHref} />;
+          return (
+            <Section bg="gold">
+              <div class="mx-auto max-w-[44rem] text-center">
+                <p class="mb-8 font-display text-3xl font-bold leading-tight md:text-4xl">{block.quote}</p>
+                <BookButton label={block.ctaLabel} href={bookHref} location="cta_band" />
+              </div>
+            </Section>
+          );
+
+        case "final-band":
+          return <FinalCta bookHref={bookHref} />;
 
         case "decor":
           return (
-            <Section compact>
-              <WpFigure image={block.image} alt={block.alt} kind="decor" />
-            </Section>
+            <div class="flower-divider" aria-hidden="true">
+              <WpFigure image={block.image} alt="" kind="decor" />
+            </div>
           );
 
         case "wp":
           return (
-            <Section>
+            <Section outerClass={page.article ? "pt-7 pb-16 md:pb-24" : undefined}>
               <WpRuns runs={block.runs} />
             </Section>
           );
 
-        case "wp-split":
+        case "wp-split": {
+          const about = page.path === "/about/";
+          const tenacious = page.path === "/tenacious-grace/";
+          const aboutClass = about ? `about-flow${aboutSplits++ === 0 ? " about-flow-first" : ""}` : "";
           return (
-            <Section>
-              <TwoColumn image={block.image} alt={block.alt} side={block.side}>
+            <Section outerClass={[aboutClass, tenacious ? "tenacious-section" : ""].filter(Boolean).join(" ") || undefined}>
+              <TwoColumn
+                image={block.image}
+                alt={block.alt}
+                side={block.side}
+                objectPosition={block.objectPosition}
+                frame={block.frame}
+              >
+                {tenacious && page.h1 && <h1 class="mb-4">{lockHeading(page.h1)}</h1>}
                 <WpRuns runs={block.runs} />
               </TwoColumn>
             </Section>
           );
+        }
 
         case "quiz":
           return (
-            <Section id="trauma-quiz">
+            <Section id="trauma-quiz" outerClass="pb-12 pt-10 md:pb-20 md:pt-16">
+              {page.h1 && <h1 class="script-title mb-8 text-center">{lockHeading(page.h1)}</h1>}
               <DeferredIframe src={QUIZ_URL} title={block.title} noscriptLabel={block.noscriptLabel} />
             </Section>
           );
@@ -346,20 +395,35 @@ let blogPhotos = 0;
         case "blog-list":
           return (
             <Section>
-              <div class="space-y-14">
+              <div class="space-y-12">
                 {block.posts.map((post) => {
-                  const side = blogPhotos++ % 2 === 0 ? "right" : "left";
+                  const meta = getImageMeta(post.image);
+                  const width = Math.min(720, meta.width);
                   return (
-                    <TwoColumn image={post.image} alt={post.alt} side={side}>
-                      <p class="mb-3 text-sm">{post.date}</p>
-                      <h2 class="mb-4">
-                        <a href={post.href}>{post.title}</a>
-                      </h2>
-                      <p class="soft mb-4" set:html={post.excerptHtml} />
-                      <a class="link-accent" href={post.href}>
-                        {post.readMore}
-                      </a>
-                    </TwoColumn>
+                    <article class="blog-card">
+                      <div class="blog-card-photo">
+                        <Image
+                          src={meta}
+                          alt={post.alt}
+                          width={width}
+                          widths={[400, width]}
+                          sizes="(min-width: 768px) 380px, 100vw"
+                          format="webp"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
+                      <div class="blog-card-copy">
+                        <p class="text-sm">{post.date}</p>
+                        <h2>
+                          <a href={post.href}>{lockHeading(post.title)}</a>
+                        </h2>
+                        <p class="soft" set:html={post.excerptHtml} />
+                        <a class="link-accent read-more" href={post.href}>
+                          {post.readMore}
+                        </a>
+                      </div>
+                    </article>
                   );
                 })}
               </div>
@@ -368,32 +432,30 @@ let blogPhotos = 0;
 
         case "post-meta":
           return (
-            <Section compact>
-              <p class="soft mb-1">{block.date}</p>
-              <p class="soft mb-2">{block.readingTime}</p>
-              <p class="mb-6 font-bold">{block.authorName}</p>
-              <WpFigure image={block.image} alt={block.alt} kind="feature" />
+            <Section outerClass="pb-0 pt-10 md:pt-14">
+              <div class="post-header">
+                <h1>{lockHeading(page.h1 ?? "")}</h1>
+                <p class="soft">
+                  {block.date}
+                  {" · "}
+                  {block.readingTime}
+                  {" · "}
+                  {block.authorName}
+                </p>
+                <WpFigure image={block.image} alt={block.alt} kind="feature" />
+              </div>
             </Section>
           );
 
         case "author":
           return (
             <Section compact>
-              <div class="author-box">
+              <div class="author-box mx-auto max-w-[44rem]">
                 <WpFigure image={block.image} alt={block.alt} kind="author" />
                 <div>
                   <p class="mb-2 font-display text-xl font-bold">{block.name}</p>
                   <p class="soft" set:html={block.bioHtml} />
                 </div>
-              </div>
-            </Section>
-          );
-
-        case "closing-book":
-          return (
-            <Section bg="charcoal">
-              <div class="text-center">
-                <BookButton label={bookLabel} href={bookHref} location="cta_band" />
               </div>
             </Section>
           );

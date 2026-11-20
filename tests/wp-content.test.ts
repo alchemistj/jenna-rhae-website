@@ -42,6 +42,7 @@ interface WpDoc {
     title: string;
     listingDate: string | null;
     excerpt: string;
+    listExcerpt: string;
     publishedDate: string;
     onLiveListing: boolean;
     featuredImage: WpImage;
@@ -140,7 +141,9 @@ describe("WordPress copy in the built pages", () => {
     for (const post of blog.posts ?? []) {
       const shownDate = post.listingDate ?? formatWpDate(post.publishedDate);
       expect(text, post.url).toContain(normalize(post.title));
-      expect(text, post.url).toContain(normalize(markdownToText(post.excerpt)));
+      expect(text, post.url).toContain(normalize(markdownToText(post.listExcerpt)));
+      expect(text, post.url).not.toContain("[…]");
+      expect(text, post.url).not.toContain("[...]");
       expect(text, post.url).toContain(shownDate);
       if (post.listingDate != null) expect(formatWpDate(post.publishedDate)).toBe(post.listingDate);
       expect(html, post.url).toContain(`href="${post.url}"`);
