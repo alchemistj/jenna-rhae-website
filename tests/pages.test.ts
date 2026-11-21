@@ -84,7 +84,7 @@ describe("every built page", () => {
     }
   });
 
-  it("inlines one hero AVIF of 35 to 110 KB with the first-frame attributes and no preload", () => {
+  it("inlines one hero AVIF of 35 to 60 KB with the first-frame attributes and no preload", () => {
     for (const route of publishedRoutes.filter((r) => r.photoHero)) {
       const html = all.find((p) => p.path === route.path)!.html;
       const imgs = html.match(/<img class="atf-photo"[^>]*>/g) ?? [];
@@ -93,7 +93,7 @@ describe("every built page", () => {
       const data = /src="data:image\/avif;base64,([^"]+)"/.exec(tag)?.[1] ?? "";
       const bytes = Math.floor((data.length * 3) / 4);
       expect(bytes, route.path).toBeGreaterThan(35_000);
-      expect(bytes, route.path).toBeLessThan(110_000);
+      expect(bytes, route.path).toBeLessThan(60_000);
       expect(tag).toContain('loading="eager"');
       expect(tag).toContain('fetchpriority="high"');
       expect(tag).toContain('decoding="sync"');
