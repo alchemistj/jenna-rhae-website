@@ -113,9 +113,9 @@ const page = {
         },
       ],
       image: {
-        image: "coach-jenna",
+        image: "jenna-portrait",
         alt: "Jenna White, MA — Christian Life Coach and Certified Biblical Counselor",
-        objectPosition: "center 20%",
+        objectPosition: "center 18%",
         frame: "portrait",
       },
     },

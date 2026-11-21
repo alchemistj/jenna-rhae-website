@@ -7,6 +7,7 @@ import heroContact from "../assets/hero-contact.jpg";
 import faithCoffeeBible from "../assets/faith-coffee-bible.jpg";
 import jenna from "../assets/jenna.jpg";
 import coachJenna from "../assets/coach-jenna.jpg";
+import jennaPortrait from "../assets/jenna-portrait.jpg";
 import logo from "../assets/jenna-logo.png";
 import wpFlowerIcon from "../assets/wp/flower-icon.png";
 import wpJennarhaeTraumaCoach from "../assets/wp/jennarhae-trauma-coach.jpg";
@@ -32,6 +33,7 @@ export const images = {
   "faith-coffee-bible": faithCoffeeBible,
   jenna,
   "coach-jenna": coachJenna,
+  "jenna-portrait": jennaPortrait,
   logo,
   "wp-flower-icon": wpFlowerIcon,
   "wp-jennarhae-trauma-coach": wpJennarhaeTraumaCoach,

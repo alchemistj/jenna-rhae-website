@@ -47,7 +47,8 @@ const nextSide = () => (photoSections++ % 2 === 0 ? "right" : "left");
 const onlyPlain = page.h1 !== undefined && page.blocks.every((block) => block.type === "plain");
 const h1InBlock =
   page.blocks.some((block) => block.type === "post-meta" || block.type === "quiz") ||
-  page.path === "/tenacious-grace/";
+  page.path === "/tenacious-grace/" ||
+  page.path === "/blog/";
 let aboutSplits = 0;
 ---
 
@@ -395,6 +396,7 @@ let aboutSplits = 0;
         case "blog-list":
           return (
             <Section>
+              {page.h1 && <h1 class="blog-title">{lockHeading(page.h1)}</h1>}
               <div class="space-y-12">
                 {block.posts.map((post) => {
                   const meta = getImageMeta(post.image);

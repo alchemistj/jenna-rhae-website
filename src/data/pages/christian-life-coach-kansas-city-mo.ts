@@ -64,9 +64,9 @@ const page = {
             "Jenna brings credentialed training (MA, Certified Biblical Counselor, Light University) alongside a deeply personal understanding of the exhaustion her clients carry.",
           ],
           image: {
-            image: "coach-jenna",
+            image: "jenna-portrait",
             alt: "Jenna White — Christian Life Coach available in Kansas City, MO",
-            objectPosition: "center 20%",
+            objectPosition: "center 18%",
             frame: "portrait",
           },
         },

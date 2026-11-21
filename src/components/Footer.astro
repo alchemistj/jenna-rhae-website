@@ -89,7 +89,7 @@ function hold(text: string): string {
                 <span class="text-gold" aria-hidden="true">
                   ✓
                 </span>
-                <span>{hold(item)}</span>
+                <span>{item}</span>
               </li>
             ))
           }
@@ -97,7 +97,7 @@ function hold(text: string): string {
       </div>
     </div>
 
-    <nav class="mt-10 flex flex-col items-center gap-2 text-sm md:flex-row md:flex-wrap md:gap-x-5 md:gap-y-2" aria-label={header.navLabel}>
+    <nav class="mt-10 flex flex-col items-center gap-2 text-sm md:flex-row md:flex-wrap md:gap-x-5 md:gap-y-2" aria-label="Footer">
       {
         pageLinks.map((item) => (
           <a href={item.href} class="footer-link whitespace-nowrap" data-cta-location={isContactHref(item.href) ? "footer" : undefined}>
@@ -108,7 +108,7 @@ function hold(text: string): string {
     </nav>
 
     <div class="mt-8 border-t border-cream/20 pt-6 text-sm text-cream/75">
-      <nav class="mb-3 flex flex-col items-center gap-2 md:flex-row md:gap-4">
+      <nav class="mb-3 flex flex-col items-center gap-2 md:flex-row md:gap-4" aria-label="Legal">
         {legal.map((item) => <a href={item.href} class="footer-link whitespace-nowrap py-1">{item.label}</a>)}
       </nav>
       <div class="flex flex-col items-center gap-2 md:flex-row md:items-baseline md:justify-between">
