@@ -168,6 +168,33 @@
       max-width: 36rem;
     }
 
+    /* Kansas City stays full-width cover. The copy stops short of the woman on the right.
+       35rem keeps every line at least 48px clear of her face at 1024, where 36rem does not. */
+    .atf:has(.atf-photo[data-hero="hero-kc"]) .hero-copy {
+      max-width: 35rem;
+    }
+
+    /* Contact's second subtitle crosses the mug rim. Hold the scrim dark through that
+       line, then let the right side of the photo come back. */
+    .atf:has(.atf-photo[data-hero="hero-contact"]) .atf-scrim {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(28, 28, 28, 0) 36%,
+          rgba(28, 28, 28, 0.5) 47%,
+          rgba(28, 28, 28, 0.5) 59%,
+          rgba(28, 28, 28, 0) 70%
+        ),
+        linear-gradient(
+          90deg,
+          rgba(28, 28, 28, 0.88) 0%,
+          rgba(28, 28, 28, 0.78) 24%,
+          rgba(28, 28, 28, 0.5) 46%,
+          rgba(28, 28, 28, 0.16) 66%,
+          rgba(28, 28, 28, 0) 80%
+        );
+    }
+
     .atf[data-mirror="true"] .atf-scrim {
       background: linear-gradient(
         90deg,
