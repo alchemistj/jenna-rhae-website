@@ -1,6 +1,7 @@
 ---
 /** Renders WordPress body runs in source order. Inline markdown is already HTML. */
 import type { WpRun } from "../data/types";
+import { lockHeading } from "../lib/heading";
 import { getImageMeta } from "../lib/images";
 import { isContactHref } from "../lib/measurement/contactHref";
 import WpFigure from "./WpFigure.astro";
@@ -25,9 +26,9 @@ function inlineSide(run: WpRun): "left" | "right" {
   {
     runs.map((run) => {
       if (run.type === "p") return <p class="soft" set:html={run.html} />;
-      if (run.type === "h2") return <h2 set:html={run.html} />;
-      if (run.type === "h3") return <h3 set:html={run.html} />;
-      if (run.type === "h4") return <h4 set:html={run.html} />;
+      if (run.type === "h2") return <h2 set:html={lockHeading(run.html)} />;
+      if (run.type === "h3") return <h3 set:html={lockHeading(run.html)} />;
+      if (run.type === "h4") return <h4 set:html={lockHeading(run.html)} />;
       if (run.type === "ul") {
         return (
           <ul>

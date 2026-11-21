@@ -14,7 +14,8 @@ const page = {
   },
   hero: {
     image: "hero-kc",
-    imageAlt: "Two women in conversation at a Kansas City coffee shop — Christian life coaching with Jenna White",
+    imageAlt: "Two women talking over coffee",
+    objectPosition: "center 40%",
     eyebrow: "Kansas City, MO",
     title: "Christian Life Coach in Kansas City MO — Jenna White",
     subtitleBold:
@@ -63,8 +64,10 @@ const page = {
             "Jenna brings credentialed training (MA, Certified Biblical Counselor, Light University) alongside a deeply personal understanding of the exhaustion her clients carry.",
           ],
           image: {
-            image: "jenna",
+            image: "jenna-portrait",
             alt: "Jenna White — Christian Life Coach available in Kansas City, MO",
+            objectPosition: "center 18%",
+            frame: "portrait",
           },
         },
         {
@@ -168,6 +171,7 @@ const page = {
         { title: "Free Consultation Call", linkLabel: "Book Now →", href: "book" },
       ],
     },
+    { type: "final-band" },
   ],
 } satisfies PageData;
 

@@ -1,6 +1,6 @@
 /**
  * Build-time image inlining for the first frame (SOP astro-first-frame-and-pagespeed sections 3 and 4).
- * - Hero photo: one final AVIF, about 1280px wide, 35 to 60 KB, inlined once as a data URI.
+ * - Hero photo: one final AVIF, 1440px wide, 35 to 60 KB, inlined once as a data URI.
  * - Logo: a small WebP (at most 4 KB) sized to its display box at 2x, inlined in the header.
  * Both read the original from src/assets and are cached for the build.
  */
@@ -15,8 +15,8 @@ export interface InlineImage {
   bytes: number;
 }
 
-const HERO_WIDTH = 1280;
-const HERO_MAX_BYTES = 56_000;
+const HERO_WIDTH = 1440;
+const HERO_MAX_BYTES = 60_000;
 const LOGO_MAX_BYTES = 4_000;
 
 const cache = new Map<string, Promise<InlineImage>>();
@@ -27,12 +27,15 @@ function assetPath(file: string): string {
 
 async function buildHero(file: string): Promise<InlineImage> {
   const source = await readFile(assetPath(file));
-  const resized = sharp(source).resize({ width: HERO_WIDTH, withoutEnlargement: true });
+  const input = sharp(source);
+  const sourceMeta = await input.metadata();
+  const targetWidth = Math.min(sourceMeta.width ?? HERO_WIDTH, HERO_WIDTH);
+  const resized = input.resize({ width: targetWidth, withoutEnlargement: true });
   const meta = await resized.clone().toBuffer({ resolveWithObject: true });
   const height = meta.info.height;
   const width = meta.info.width;
 
-  // Find the highest quality that fits the budget with a quick encode, then do the slow final encode.
+  // Highest quality that fits the budget, then the slow final encode.
   let chosen = 30;
   for (const quality of [80, 74, 68, 62, 56, 50, 44, 38, 32]) {
     const probe = await resized.clone().avif({ quality, effort: 3 }).toBuffer();

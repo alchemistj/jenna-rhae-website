@@ -65,7 +65,33 @@ export function mountDeferredIframe(box: HTMLElement, doc: Document = document):
     frame.setAttribute("style", "width:100%;border:none;overflow:hidden;");
   }
   mountPoint(box, doc).appendChild(frame);
+  if (box.dataset.fit === "true") watchIframeHeight(box, frame);
   return frame;
+}
+
+const SIZER = "[iFrameSizer]";
+const SIZER_READY = "[iFrameResizerChild]Ready";
+
+/** LeadConnector's quiz includes iframe-resizer's child script. Init it and use the height it reports. */
+function watchIframeHeight(box: HTMLElement, frame: HTMLIFrameElement): void {
+  const id = "quiz-embed";
+  const init = `${SIZER}${id}:8:false:false:32:true:true::bodyOffset::0:false:child:scroll`;
+  const onMessage = (event: MessageEvent) => {
+    if (event.source !== frame.contentWindow) return;
+    const data = typeof event.data === "string" ? event.data : "";
+    if (data === SIZER_READY) {
+      frame.contentWindow?.postMessage(init, "*");
+      return;
+    }
+    if (!data.startsWith(SIZER)) return;
+    const parts = data.slice(SIZER.length).split(":");
+    if (parts[0] !== id) return;
+    const height = Number(parts[1]);
+    if (!Number.isFinite(height) || height < 80) return;
+    box.style.height = `${Math.ceil(height)}px`;
+  };
+  window.addEventListener("message", onMessage);
+  frame.addEventListener("load", () => frame.contentWindow?.postMessage(init, "*"));
 }
 
 /**

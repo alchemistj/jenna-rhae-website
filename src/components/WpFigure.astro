@@ -17,8 +17,9 @@ const meta = getImageMeta(image);
 const large = kind === "inline" && meta.width > 280;
 const width =
   kind === "decor" ? Math.min(meta.width, 70) :
-  kind === "author" ? 96 :
-  kind === "feature" || large ? Math.min(meta.width, 720) :
+    kind === "author" ? 96 :
+  kind === "feature" ? Math.min(meta.width, 1200) :
+  large ? Math.min(meta.width, 720) :
   meta.width;
 const height = Math.max(1, Math.round((meta.height * width) / meta.width));
 const responsive = kind === "feature" || large;
@@ -42,10 +43,14 @@ if (widths.length === 0) widths.push(Math.min(width, meta.width));
     width={width}
     height={height}
     widths={widths}
-    sizes={kind === "author" ? "96px" : kind === "decor" ? "70px" : responsive ? "(min-width: 768px) 400px, 100vw" : `${width}px`}
+    sizes={
+      kind === "author" ? "96px" : kind === "decor" ? "70px" : kind === "feature" ? "(min-width: 768px) 900px, 100vw" : responsive ? "(min-width: 768px) 400px, 100vw" : `${width}px`
+    }
     format="webp"
     loading="lazy"
     decoding="async"
-    class:list={[kind === "author" ? "h-24 w-24 rounded-full object-cover" : "h-auto w-full"]}
+    class:list={[
+      kind === "author" ? "h-24 w-24 rounded-full object-cover" : kind === "feature" ? "h-full w-full object-cover" : "h-auto w-full",
+    ]}
   />
 </figure>

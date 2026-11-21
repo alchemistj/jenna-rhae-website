@@ -1,7 +1,9 @@
 ---
 /** Site footer. Copy from src/data/site.ts. Legal links render only for published routes. */
-import { footer } from "../data/site";
+import { footer, header } from "../data/site";
 import { isPublished } from "../lib/routeRegistry";
+import { isContactHref } from "../lib/measurement/contactHref";
+import { getInlineLogo } from "../lib/inlineImage";
 import { EMAIL, MAILTO } from "../lib/site";
 
 interface Props {
@@ -9,41 +11,84 @@ interface Props {
 }
 const { bookHref } = Astro.props;
 const legal = footer.legal.filter((item) => isPublished(item.href));
+const logo = await getInlineLogo("jenna-logo.png", 160);
+const logoHeight = Math.round(logo.height / 2);
+const copyright = footer.copyright.replace(/\b20\d{2}\b/, String(new Date().getFullYear()));
+const pageLinks = header.nav.filter((item) =>
+  ["/", "/about/", "/blog/", "/contact/"].includes(item.href) && isPublished(item.href),
+);
+
+const serviceLinks: Record<string, string> = {
+  "Trauma Recovery Coaching": "/trauma-coaching/",
+  "Christian Life Coaching": "/christian-life-coach-kansas-city-mo/",
+  "Christian Coaching in Kansas City, MO": "/christian-life-coach-kansas-city-mo/",
+  "Tenacious Grace (Emotional Eating)": "/tenacious-grace/",
+  "Free Consultation Call": "/contact/#book",
+};
+
+/** Keep city names and dash phrases from splitting. The words stay the same. */
+function hold(text: string): string {
+  return text.replaceAll("Kansas City, MO", "Kansas\u00A0City,\u00A0MO").replaceAll(" — ", "\u00A0—\u00A0");
+}
+
+/** Keep a compound or a city name on one line. The characters stay the same. */
+function keepTogether(text: string): string {
+  return text
+    .replaceAll(/[A-Za-z]+(?:-[A-Za-z]+)+/g, '<span class="whitespace-nowrap">$&</span>')
+    .replaceAll("Kansas City, MO", '<span class="whitespace-nowrap">Kansas City, MO</span>');
+}
 ---
 
-<footer class="bg-charcoal text-cream">
+<footer class="site-footer bg-charcoal text-cream">
   <div class="container-narrow py-14">
-    <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+    <div class="footer-columns">
       <div>
-        <div class="mb-4 font-display text-2xl font-bold"><span class="text-gold">J</span>ENNARHAE</div>
+        <a href="/" class="mb-4 inline-flex rounded-lg bg-cream px-3 py-2">
+          <img src={logo.dataUri} alt="JennaRhae" width="160" height={logoHeight} class="h-auto w-[160px]" />
+        </a>
         <p class="mb-4 text-sm leading-relaxed text-cream/85">{footer.about}</p>
         <ul class="space-y-2 text-sm text-cream/85">
           <li>
-            <a href={MAILTO} class="underline-offset-2 hover:text-gold hover:underline">{EMAIL}</a>
+            <a href={MAILTO} class="footer-link">{EMAIL}</a>
           </li>
           <li>
-            <a href={bookHref} class="underline-offset-2 hover:text-gold hover:underline" data-cta-location="footer">{footer.bookLink}</a>
+            <a href={bookHref} class="footer-link" data-cta-location="footer">{footer.bookLink}</a>
           </li>
           <li class="text-cream/70">{footer.appointment}</li>
         </ul>
       </div>
 
       <div>
-        <h2 class="mb-4 font-body text-sm font-bold tracking-wide text-gold">{footer.servicesHeading}</h2>
+        <p class="eyebrow mb-4">{footer.servicesHeading}</p>
         <ul class="space-y-2 text-sm text-cream/85">
-          {footer.services.map((item) => <li>{item}</li>)}
+          {
+            footer.services.map((item) => {
+              const href = serviceLinks[item];
+              return (
+                <li>
+                  {href ? (
+                    <a href={href} class="footer-link" data-cta-location={isContactHref(href) ? "footer" : undefined}>
+                      {item}
+                    </a>
+                  ) : (
+                    item
+                  )}
+                </li>
+              );
+            })
+          }
         </ul>
       </div>
 
       <div>
-        <h2 class="mb-4 font-body text-sm font-bold tracking-wide text-gold">{footer.servingHeading}</h2>
-        <ul class="grid grid-cols-2 gap-x-3 gap-y-2 text-sm text-cream/85">
-          {footer.serving.map((item) => <li>{item}</li>)}
+        <p class="eyebrow mb-4">{footer.servingHeading}</p>
+        <ul class="space-y-2 text-sm text-cream/85">
+          {footer.serving.map((item) => <li>{hold(item)}</li>)}
         </ul>
       </div>
 
       <div>
-        <h2 class="mb-4 font-body text-sm font-bold tracking-wide text-gold">{footer.whyHeading}</h2>
+        <p class="eyebrow mb-4">{footer.whyHeading}</p>
         <ul class="space-y-2 text-sm text-cream/85">
           {
             footer.why.map((item) => (
@@ -51,7 +96,7 @@ const legal = footer.legal.filter((item) => isPublished(item.href));
                 <span class="text-gold" aria-hidden="true">
                   ✓
                 </span>
-                <span>{item}</span>
+                <span class="min-w-0 text-balance" set:html={keepTogether(item)} />
               </li>
             ))
           }
@@ -59,14 +104,24 @@ const legal = footer.legal.filter((item) => isPublished(item.href));
       </div>
     </div>
 
-    <div
-      class="mt-12 flex flex-col gap-3 border-t border-cream/20 pt-6 text-xs text-cream/75 md:flex-row md:items-center md:justify-between"
-    >
-      <div class="flex flex-wrap gap-x-4 gap-y-1">
-        <span>{footer.copyright}</span>
-        {legal.map((item) => <a href={item.href} class="py-1 hover:text-gold hover:underline">{item.label}</a>)}
+    <nav class="mt-10 flex flex-col items-center gap-2 text-sm md:flex-row md:flex-wrap md:gap-x-5 md:gap-y-2" aria-label="Footer">
+      {
+        pageLinks.map((item) => (
+          <a href={item.href} class="footer-link whitespace-nowrap" data-cta-location={isContactHref(item.href) ? "footer" : undefined}>
+            {item.label}
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="mt-8 border-t border-cream/20 pt-6 text-sm text-cream/75">
+      <nav class="mb-3 flex flex-col items-center gap-2 md:flex-row md:gap-4" aria-label="Legal">
+        {legal.map((item) => <a href={item.href} class="footer-link whitespace-nowrap py-1">{item.label}</a>)}
+      </nav>
+      <div class="flex flex-col items-center gap-2 md:flex-row md:items-baseline md:justify-between">
+        <p class="md:whitespace-nowrap">{copyright}</p>
+        <p class="text-center md:whitespace-nowrap">{hold(footer.tagline)}</p>
       </div>
-      <div>{footer.tagline}</div>
     </div>
   </div>
 </footer>

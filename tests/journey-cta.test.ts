@@ -22,14 +22,23 @@ function expected(page: PageData) {
   let ctaBand = 0;
   for (const block of page.blocks) {
     if (block.type === "faq" && block.ctaLabel) main += 1;
-    if (block.type === "final-cta" || block.type === "closing-book") ctaBand += 1;
+    if (block.type === "final-cta" || block.type === "final-band") ctaBand += 1;
+    if (block.type === "cards") {
+      for (const card of block.cards) if (card.href && isContactHref(card.href)) main += 1;
+    }
+    if (block.type === "wp" || block.type === "wp-split") {
+      for (const run of block.runs) {
+        if (run.type === "cta" && isContactHref(run.href)) main += 1;
+        if ("html" in run && run.html) main += run.html.match(/data-cta-location="main"/g)?.length ?? 0;
+      }
+    }
   }
   return {
-    header: 3,
-    mobile_menu: 2,
+    header: 0,
+    mobile_menu: 0,
     sticky_bar: 1,
-    footer: 1,
-    hero: page.hero ? 1 : 0,
+    footer: 3,
+    hero: page.hero?.ctaLabel ? 1 : 0,
     main,
     cta_band: ctaBand,
   };
@@ -52,13 +61,14 @@ describe("cta locations on built pages", () => {
         const contact = isContactHref(href);
         const location = locationOf(tag);
         if (location !== undefined) expect(CTA_LOCATIONS, tag).toContain(location);
-        if (book || contact) expect(location, `${path} ${tag}`).toBeTruthy();
+        if ((book || contact) && !tag.includes("data-nav-link")) expect(location, `${path} ${tag}`).toBeTruthy();
         if (book) {
           expect(href === "#book" || href === "/contact/#book", `${path} ${href}`).toBe(true);
         }
       }
       expect(html, path).not.toMatch(/<iframe/i);
     }
-    expect([...seen].sort()).toEqual([...CTA_LOCATIONS].sort());
+    const used = CTA_LOCATIONS.filter((location) => location !== "header" && location !== "mobile_menu");
+    expect([...seen].sort()).toEqual([...used].sort());
   });
 });

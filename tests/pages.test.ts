@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { pages } from "../src/data/pages";
-import { publishedRoutes } from "../src/lib/routeRegistry";
+import { legalFinal } from "../src/data/site";
+import { getRoute, publishedRoutes } from "../src/lib/routeRegistry";
 import { allPageHtml, normalize } from "./helpers";
 
 const all = allPageHtml();
@@ -34,9 +35,18 @@ describe("every built page", () => {
     }
   });
 
-  it("is not noindex", () => {
+  it("is not noindex, except legal pages while the legal text is still a draft", () => {
     for (const { path, html } of all) {
-      expect(html.toLowerCase(), path).not.toMatch(/<meta[^>]+name="robots"[^>]*noindex/);
+      const noindex = /<meta[^>]+name="robots"[^>]*noindex/i.test(html);
+      if (!legalFinal && getRoute(path)?.kind === "legal") expect(noindex, path).toBe(true);
+      else expect(noindex, path).toBe(false);
+    }
+  });
+
+  it("has no booking button in the header or the mobile menu", () => {
+    for (const { path, html } of all) {
+      expect(html, path).not.toContain('data-cta-location="header"');
+      expect(html, path).not.toContain('data-cta-location="mobile_menu"');
     }
   });
 

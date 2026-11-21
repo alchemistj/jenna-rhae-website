@@ -49,7 +49,7 @@ export const routes: readonly RouteEntry[] = [
   { path: "/terms/", label: "Terms of Service", kind: "legal", changefreq: "yearly", priority: 0.2 },
   { path: "/text-messaging-terms/", label: "Text Messaging Terms", kind: "legal", changefreq: "yearly", priority: 0.2 },
 
-  { path: "/about/", label: "About", kind: "page", changefreq: "monthly", priority: 0.7 },
+  { path: "/about/", label: "About", kind: "page", photoHero: true, changefreq: "monthly", priority: 0.7 },
   { path: "/blog/", label: "Blog", kind: "page", changefreq: "weekly", priority: 0.7 },
   {
     path: "/free-trauma-test/",

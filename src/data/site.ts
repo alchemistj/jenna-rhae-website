@@ -13,6 +13,17 @@ export const brand = {
 
 export const bookLabel = "Book a Free Consultation Call";
 
+/**
+ * Real legal text is still a draft. While this is false, the three legal pages stay out of the
+ * index and the contact form does not show or submit SMS consent.
+ */
+export const legalFinal = false;
+
+/** Whether the SMS consent block is shown and submitted. Unit-tested with both flag values. */
+export function showSmsConsent(flag: boolean = legalFinal): boolean {
+  return flag;
+}
+
 export const header = {
   /** Nav links. Items whose route is pending in the route registry are not rendered. */
   nav: [
@@ -23,8 +34,6 @@ export const header = {
     { href: "/blog/", label: "Blog" },
     { href: "/contact/", label: "Contact" },
   ],
-  bookLong: "Book a Free Call",
-  bookShort: "Book Call",
   /** a11y */
   menuLabel: "Menu",
   /** a11y */
@@ -34,7 +43,7 @@ export const header = {
 };
 
 export const mobileBar = {
-  label: "Book a Free Consultation Call",
+  label: "Book a Free Call",
 };
 
 export const footer = {
@@ -90,4 +99,18 @@ export const booking: BookingCopy = {
   heading: "Book a Free Consultation Call",
   iframeTitle: "Book a free consultation call with Jenna White",
   noscript: "Open the booking calendar",
+};
+
+// Draft copy pending Jenna's approval (Nov 20, 2026)
+export const finalCta = {
+  heading: "You Don't Have to Carry This Alone",
+  body: "Start with a free call. We will talk about what you are carrying and what feels hard right now, with no pressure to decide anything.",
+  ctaLabel: "Book a Free Consultation Call",
+};
+
+// Draft copy pending Jenna's approval (Nov 20, 2026)
+export const notFound = {
+  title: "Page Not Found | JennaRhae",
+  heading: "Let's Get You Back on Track",
+  body: "That link has moved or no longer works, and that is okay. Pick a place below to keep going, or reach out if you need help.",
 };

@@ -23,8 +23,12 @@ interface Props {
   bare?: boolean;
   /** Size this iframe with SpringboardCRM's resizer, loaded with the iframe. */
   autosize?: boolean;
+  /** Drop the reserved min-height and size the box to the iframe's reported height. */
+  fit?: boolean;
   /** Iframe id: widget id, underscore, number. */
   frameId?: string;
+  /** Visible label of the button that sits in the box until the embed loads. */
+  placeholderLabel?: string;
 }
 const {
   src,
@@ -35,13 +39,16 @@ const {
   id,
   bare = false,
   autosize = false,
+  fit = false,
   frameId,
+  placeholderLabel,
 } = Astro.props;
 ---
 
 <div
   id={id}
   class:list={["deferred-embed", bare && "deferred-embed-bare"]}
+  data-fit={fit ? "true" : undefined}
   data-deferred-iframe
   data-src={src}
   data-title={title}
@@ -49,6 +56,19 @@ const {
   data-frame-id={frameId}
   style={`--embed-h: ${height}px; --embed-h-mobile: ${mobileHeight}px`}
 >
+  {
+    placeholderLabel && (
+      <div class="embed-placeholder">
+        <div class="embed-placeholder-card">
+          <button type="button" class="btn-accent">{placeholderLabel.replace("Consultation Call", "Consultation\u00A0Call")}</button>
+          <div class="embed-skeleton" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    )
+  }
   <noscript>
     <p class="embed-fallback"><a class="link-accent underline" href={src} rel="noopener noreferrer">{noscriptLabel}</a></p>
   </noscript>

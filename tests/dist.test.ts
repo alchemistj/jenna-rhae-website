@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { legalFinal } from "../src/data/site";
 import { BOOKING_EMBED_HEIGHT, BOOKING_EMBED_HEIGHT_MOBILE, BOOKING_FRAME_ID, FORM_EMBED_URL, QUIZ_URL } from "../src/lib/site";
 import { DIST, walk } from "./helpers";
 
@@ -44,6 +45,8 @@ describe("images and hosts", () => {
       for (const m of content.matchAll(/http:\/\/[^\s"'<>)]+/g)) {
         // xmlns declarations are namespaces, not requests.
         if (/^http:\/\/www\.w3\.org\//.test(m[0]) || /^http:\/\/www\.sitemaps\.org\//.test(m[0])) continue;
+        // The SIL license text next to the self-hosted font, not an image request.
+        if (m[0] === "http://scripts.sil.org/OFL" && file.endsWith(`${path.sep}OFL.txt`)) continue;
         hits.push(`${path.relative(DIST, file)} ${m[0]}`);
       }
     }
@@ -133,13 +136,18 @@ describe("analytics and form bundles", () => {
     expect(everything).toContain("generate_lead");
   });
 
-  it("renders the contact form in the server HTML with a honeypot and an unchecked SMS consent box", () => {
+  it("renders the contact form in the server HTML with a honeypot, and SMS consent only when legal text is final", () => {
     const contact = read(path.join(DIST, "contact", "index.html"));
     expect(contact).toContain("data-lead-form");
     expect(contact).toContain('name="website_url"');
     const consent = /<input[^>]*name="sms_consent"[^>]*>/.exec(contact)?.[0] ?? "";
-    expect(consent).toContain('type="checkbox"');
-    expect(consent).not.toContain("checked");
+    if (legalFinal) {
+      expect(consent).toContain('type="checkbox"');
+      expect(consent).not.toContain("checked");
+    } else {
+      expect(consent).toBe("");
+      expect(contact).not.toContain("I agree to receive text messages");
+    }
     for (const href of ["/privacy/", "/terms/", "/text-messaging-terms/"]) {
       expect(contact).toContain(`href="${href}"`);
     }
@@ -147,6 +155,21 @@ describe("analytics and form bundles", () => {
     expect(contact).toContain("mailto:hello@jennarhae.com");
     for (const file of textFiles) {
       expect(read(file), path.relative(DIST, file)).not.toContain("info@jennarhae.com");
+    }
+  });
+});
+
+describe("audit markup", () => {
+  it("does not force caps on any element and does not say READ MORE", () => {
+    // Built from parts so the stylesheet scanner does not treat this assertion as a utility class.
+    const forcedCaps = `text-transform:${"upper"}${"case"}`;
+    const capsUtility = `${"upper"}${"case"}`;
+    for (const file of files.filter((f) => f.endsWith(".html") || f.endsWith(".css"))) {
+      const content = read(file);
+      const markup = content.replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<script[\s\S]*?<\/script>/gi, "");
+      expect(markup, path.relative(DIST, file)).not.toContain(forcedCaps);
+      expect(markup, path.relative(DIST, file)).not.toMatch(new RegExp(`class="[^"]*\\b${capsUtility}\\b`));
+      expect(content, path.relative(DIST, file)).not.toContain("READ MORE");
     }
   });
 });

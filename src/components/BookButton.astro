@@ -11,8 +11,10 @@ interface Props {
   href: string;
   location: CtaLocation;
   class?: string;
+  variant?: "accent" | "outline";
 }
-const { label, href, location, class: className } = Astro.props;
+const { label, href, location, class: className, variant = "accent" } = Astro.props;
+const text = label.replace("Consultation Call", "Consultation\u00A0Call");
 ---
 
-<a href={href} class:list={["btn-accent", className]} data-book data-cta-location={location}>{label}</a>
+<a href={href} class:list={[variant === "outline" ? "btn-outline" : "btn-accent", className]} data-book data-cta-location={location}>{text}</a>

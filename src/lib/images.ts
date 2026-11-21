@@ -1,11 +1,13 @@
 import type { ImageMetadata } from "astro";
-import heroHome from "../assets/hero-home.jpg";
+import heroHome from "../assets/hero-home-wheat.jpg";
+import aboutBeach from "../assets/about-beach.jpg";
 import heroTrauma from "../assets/hero-trauma.jpg";
 import heroKc from "../assets/hero-kc.jpg";
 import heroContact from "../assets/hero-contact.jpg";
 import faithCoffeeBible from "../assets/faith-coffee-bible.jpg";
 import jenna from "../assets/jenna.jpg";
 import coachJenna from "../assets/coach-jenna.jpg";
+import jennaPortrait from "../assets/jenna-portrait.jpg";
 import logo from "../assets/jenna-logo.png";
 import wpFlowerIcon from "../assets/wp/flower-icon.png";
 import wpJennarhaeTraumaCoach from "../assets/wp/jennarhae-trauma-coach.jpg";
@@ -24,12 +26,14 @@ import wpIsGriefTrauma from "../assets/wp/is-grief-trauma.jpg";
 /** Every site image is a local file in src/assets, optimized at build time. Data files refer to them by key. */
 export const images = {
   "hero-home": heroHome,
+  "about-beach": aboutBeach,
   "hero-trauma": heroTrauma,
   "hero-kc": heroKc,
   "hero-contact": heroContact,
   "faith-coffee-bible": faithCoffeeBible,
   jenna,
   "coach-jenna": coachJenna,
+  "jenna-portrait": jennaPortrait,
   logo,
   "wp-flower-icon": wpFlowerIcon,
   "wp-jennarhae-trauma-coach": wpJennarhaeTraumaCoach,

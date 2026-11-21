@@ -1,31 +1,34 @@
 ---
 /**
  * Site header. Fixed, hides on scroll down and returns on scroll up (transform only).
- * Desktop: logo, nav links, Book button. Mobile: logo, Book button and a hamburger (native <details>, so it works without JS).
+ * Desktop: logo and nav links. Mobile: logo and a hamburger (native <details>, so it works without JS).
  * Nav items whose route is pending in the route registry are not rendered.
  */
 import { header, brand } from "../data/site";
 import { isPublished } from "../lib/routeRegistry";
 import { getInlineLogo } from "../lib/inlineImage";
-import { isContactHref } from "../lib/measurement/contactHref";
-import BookButton from "./BookButton.astro";
 import Icon from "./Icon.astro";
 
 interface Props {
   /** Current page path, for the active link. */
   path: string;
-  bookHref: string;
 }
-const { path, bookHref } = Astro.props;
+const { path } = Astro.props;
 const nav = header.nav.filter((item) => isPublished(item.href));
-const logo = await getInlineLogo("jenna-logo.png", 150);
+const logo = await getInlineLogo("jenna-logo.png", 180);
 const logoHeight = Math.round(logo.height / 2);
 ---
 
 <header class="site-header" data-site-header>
   <div class="container-narrow flex h-full items-center justify-between gap-3">
     <a href="/" class="flex shrink-0 items-center">
-      <img src={logo.dataUri} alt={brand.logoAlt} width="150" height={logoHeight} class="h-auto w-[150px]" />
+      <img
+        src={logo.dataUri}
+        alt={brand.logoAlt}
+        width="180"
+        height={logoHeight}
+        class="h-auto w-[150px] sm:w-[180px]"
+      />
     </a>
 
     <nav class="hidden items-center gap-7 text-sm md:flex" aria-label={header.navLabel}>
@@ -38,7 +41,7 @@ const logoHeight = Math.round(logo.height / 2);
               item.href === path ? "font-bold text-accent" : "text-charcoal/85",
             ]}
             aria-current={item.href === path ? "page" : undefined}
-            data-cta-location={isContactHref(item.href) ? "header" : undefined}
+            data-nav-link
           >
             {item.label}
           </a>
@@ -46,10 +49,8 @@ const logoHeight = Math.round(logo.height / 2);
       }
     </nav>
 
-    <div class="flex items-center gap-2">
-      <BookButton label={header.bookLong} href={bookHref} location="header" class="btn-sm hidden sm:inline-flex" />
-      <BookButton label={header.bookShort} href={bookHref} location="header" class="btn-sm sm:hidden" />
-      <details class="group md:hidden" data-menu>
+    <div class="flex items-center md:hidden">
+      <details class="group" data-menu>
         <summary
           class="flex h-12 w-12 cursor-pointer list-none items-center justify-center text-charcoal [&::-webkit-details-marker]:hidden"
         >
@@ -68,13 +69,12 @@ const logoHeight = Math.round(logo.height / 2);
                   href={item.href}
                   class:list={["py-3 text-base", item.href === path ? "font-bold text-accent" : "text-charcoal"]}
                   aria-current={item.href === path ? "page" : undefined}
-                  data-cta-location={isContactHref(item.href) ? "mobile_menu" : undefined}
+                  data-nav-link
                 >
                   {item.label}
                 </a>
               ))
             }
-            <BookButton label={header.bookLong} href={bookHref} location="mobile_menu" class="mt-2" />
           </div>
         </nav>
       </details>

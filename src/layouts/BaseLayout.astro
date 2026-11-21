@@ -21,14 +21,17 @@ import PageBlocks from "../components/PageBlocks.astro";
 
 interface Props {
   page: PageData;
+  robots?: string;
+  /** Pages that are built but not listed in the route registry (the 404 page). */
+  unlisted?: boolean;
 }
-const { page } = Astro.props;
+const { page, robots, unlisted = false } = Astro.props;
 
 const route = getRoute(page.path);
-if (!route || route.pending) {
+if (!unlisted && (!route || route.pending)) {
   throw new Error(`Route ${page.path} is not published in src/lib/routeRegistry.ts`);
 }
-const hasBooking = route.hasBooking === true;
+const hasBooking = route?.hasBooking === true;
 const hasBookingBlock = page.blocks.some((block) => block.type === "booking");
 if (hasBooking !== hasBookingBlock) {
   throw new Error(`Route ${page.path}: registry hasBooking (${hasBooking}) does not match its booking block (${hasBookingBlock})`);
@@ -51,7 +54,7 @@ const jsonLd = buildJsonLd({
   title: seo.title,
   description: seo.description,
   logoUrl: `${SITE_URL}${logoImage.src}`,
-  breadcrumbLabel: route.label,
+  breadcrumbLabel: route?.label,
   faq,
   article: page.article
     ? {
@@ -73,6 +76,7 @@ const canonical = canonicalUrl(page.path);
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{seo.title}</title>
     <meta name="description" content={seo.description} />
+    {robots && <meta name="robots" content={robots} />}
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="author" content="Jenna White, MA" />
@@ -91,23 +95,25 @@ const canonical = canonicalUrl(page.path);
   </head>
   <body>
     <a class="skip-link" href="#main">{header.skipLink}</a>
-    <div class="atf">
+    <div class="atf" data-mirror={page.hero?.mirror ? "true" : undefined}>
       {
         page.hero && (
           <HeroPhoto
             image={page.hero.image}
             alt={page.hero.imageAlt}
             objectPosition={page.hero.objectPosition}
-            overlayOpacity={page.hero.overlayOpacity}
+            mirror={page.hero.mirror}
           />
         )
       }
-      <Header path={page.path} bookHref={bookLink} />
+      <Header path={page.path} />
       {page.hero && <Hero hero={page.hero} bookHref={bookLink} />}
       <span class="atf-ready" hidden></span>
     </div>
     <main id="main">
-      <PageBlocks page={page} bookHref={bookLink} />
+      <slot>
+        <PageBlocks page={page} bookHref={bookLink} />
+      </slot>
     </main>
     <Footer bookHref={bookLink} />
     <MobileBar bookHref={bookLink} />

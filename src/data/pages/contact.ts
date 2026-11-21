@@ -20,6 +20,7 @@ const page = {
   hero: {
     image: "hero-contact",
     imageAlt: "Hands around a warm coffee mug with an open journal — contact Jenna White",
+    objectPosition: "center 48%",
     overlayOpacity: 45,
     eyebrow: "Get in Touch",
     title: "Let's Talk — Book Your Free Consultation",
@@ -73,6 +74,7 @@ const page = {
       quote: "“You don't need to have it figured out. You just need to take one step.”",
       ctaLabel: "Book Your Free Consultation Call",
     },
+    { type: "final-band" },
   ],
   form: {
     eyebrow: "Contact Form",

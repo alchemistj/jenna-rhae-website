@@ -48,6 +48,7 @@ interface WpPostCard {
   publishedDate: string;
   listingDate: string | null;
   excerpt: string;
+  listExcerpt: string;
   readMoreLabel: string;
   featuredImage: WpImage;
   onLiveListing: boolean;
@@ -128,15 +129,28 @@ function seo(doc: WpDoc, ogImage?: ImageKey): PageData["seo"] {
   };
 }
 
-function split(image: WpImage, runs: WpRun[], side: "right" | "left"): Block {
-  return { type: "wp-split", image: imageKey(image.src), alt: resolveAlt(image), side, runs };
+function split(
+  image: WpImage,
+  runs: WpRun[],
+  side: "right" | "left",
+  opts?: { objectPosition?: string; frame?: "fill" | "portrait" | "contain" },
+): Block {
+  return {
+    type: "wp-split",
+    image: imageKey(image.src),
+    alt: resolveAlt(image),
+    side,
+    runs,
+    objectPosition: opts?.objectPosition,
+    frame: opts?.frame,
+  };
 }
 
 function buildAbout(doc: WpDoc): PageData {
   const flower = doc.sections.find((section) => isImage(section) && section.decorative);
   const photos = doc.sections.filter((section): section is WpImage => isImage(section) && !section.decorative);
   const paragraphs = doc.sections.filter((section) => section.type === "p");
-  const heading = doc.sections.find((section) => section.type === "h4");
+  const heading = doc.sections.find((section) => section.type === "h3");
   const list = doc.sections.find((section) => section.type === "ul");
   if (!flower || !isImage(flower) || photos.length !== 3 || paragraphs.length !== 8 || !heading || !list) {
     throw new Error("about.json no longer matches the page builder");
@@ -145,13 +159,25 @@ function buildAbout(doc: WpDoc): PageData {
   if (!doc.h1) throw new Error("about.json is missing its H1");
   return {
     path: doc.url,
-    seo: seo(doc, imageKey(portrait.src)),
-    h1: doc.h1,
+    seo: seo(doc, "about-beach"),
+    hero: {
+      image: "about-beach",
+      imageAlt: "Beach at the water's edge in soft light",
+      objectPosition: "center center",
+      title: doc.h1,
+      flower: true,
+    },
     blocks: [
+      split(portrait, paragraphs.slice(0, 3).flatMap(toRuns), "right", { frame: "portrait" }),
       { type: "decor", image: imageKey(flower.src), alt: "" },
-      split(portrait, paragraphs.slice(0, 3).flatMap(toRuns), "right"),
-      split(wedding, paragraphs.slice(3, 6).flatMap(toRuns), "left"),
-      split(facts, [toRun(heading), toRun(list), ...paragraphs.slice(6).flatMap(toRuns)], "right"),
+      split(wedding, paragraphs.slice(3, 6).flatMap(toRuns), "left", {
+        frame: "portrait",
+        objectPosition: "center 20%",
+      }),
+      { type: "decor", image: imageKey(flower.src), alt: "" },
+      split(facts, [toRun(heading), toRun(list), ...paragraphs.slice(6).flatMap(toRuns)], "right", {
+        frame: "portrait",
+      }),
     ],
   };
 }
@@ -169,8 +195,8 @@ function buildTenacious(doc: WpDoc): PageData {
     seo: seo(doc, imageKey(photo.src)),
     h1: doc.h1,
     blocks: [
-      split(photo, [toRun(heading), ...paragraphs.flatMap(toRuns)], "right"),
-      { type: "wp", runs: [toRun(cta)] },
+      split(photo, [toRun(heading), ...paragraphs.flatMap(toRuns), toRun(cta)], "right", { frame: "contain" }),
+      { type: "decor", image: "wp-flower-icon", alt: "" },
     ],
   };
 }
@@ -205,7 +231,7 @@ function buildBlog(doc: WpDoc): PageData {
           href: post.url,
           title: post.title,
           date: post.listingDate ?? formatWpDate(post.publishedDate),
-          excerptHtml: renderInline(post.excerpt),
+          excerptHtml: renderInline(post.listExcerpt),
           readMore: post.readMoreLabel,
           image: imageKey(post.featuredImage.src),
           alt: resolveAlt(post.featuredImage),
@@ -248,7 +274,7 @@ function buildPost(doc: WpDoc): PageData {
         image: imageKey(doc.author.image.src),
         alt: resolveAlt(doc.author.image),
       },
-      { type: "closing-book" },
+      { type: "final-band" },
     ],
   };
 }

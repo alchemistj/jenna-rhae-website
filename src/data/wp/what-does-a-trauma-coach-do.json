@@ -30,7 +30,7 @@
       "type": "image",
       "src": "src/assets/wp/jenna-white-author.jpg",
       "alt": "",
-      "title": "Jenna-Barbossa-author",
+      "title": "Jenna-White-author",
       "width": 200,
       "height": 200
     }
@@ -255,7 +255,7 @@
     },
     {
       "type": "p",
-      "text": "If you're curious about what coaching might look like for you, I invite you to [book a free 15-minute chat](/) and explore whether it's a good fit."
+      "text": "If you're curious about what coaching might look like for you, I invite you to [book a free 15-minute chat](/contact/#book) and explore whether it's a good fit."
     }
   ],
   "faq": []
