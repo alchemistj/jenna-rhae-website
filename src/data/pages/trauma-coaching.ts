@@ -13,7 +13,8 @@ const page = {
   hero: {
     image: "hero-trauma",
     imageAlt: "Woman seated near a window in soft light",
-    objectPosition: "center 42%",
+    objectPosition: "center 30%",
+    mirror: true,
     eyebrow: "Trauma Recovery Coaching",
     title: "Trauma Recovery Coach — Jenna White",
     subtitleBold: "Your body learned survival to protect you. Now it can gently learn safety.",

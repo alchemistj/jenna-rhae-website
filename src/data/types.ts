@@ -42,6 +42,8 @@ export interface HeroData {
   imageAlt: string;
   /** CSS object-position for the one inline photo. */
   objectPosition?: string;
+  /** Flip the photo left to right. Desktop only; phones keep the original direction. */
+  mirror?: boolean;
   /** 0 to 100. Kept for older heroes; the scrim is a text-side gradient. */
   overlayOpacity?: number;
   eyebrow?: string;

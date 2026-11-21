@@ -30,6 +30,13 @@ const serviceLinks: Record<string, string> = {
 function hold(text: string): string {
   return text.replaceAll("Kansas City, MO", "Kansas\u00A0City,\u00A0MO").replaceAll(" — ", "\u00A0—\u00A0");
 }
+
+/** Keep a compound or a city name on one line. The characters stay the same. */
+function keepTogether(text: string): string {
+  return text
+    .replaceAll(/[A-Za-z]+(?:-[A-Za-z]+)+/g, '<span class="whitespace-nowrap">$&</span>')
+    .replaceAll("Kansas City, MO", '<span class="whitespace-nowrap">Kansas City, MO</span>');
+}
 ---
 
 <footer class="site-footer bg-charcoal text-cream">
@@ -89,7 +96,7 @@ function hold(text: string): string {
                 <span class="text-gold" aria-hidden="true">
                   ✓
                 </span>
-                <span>{item}</span>
+                <span class="min-w-0 text-balance" set:html={keepTogether(item)} />
               </li>
             ))
           }

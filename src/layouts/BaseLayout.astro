@@ -95,13 +95,14 @@ const canonical = canonicalUrl(page.path);
   </head>
   <body>
     <a class="skip-link" href="#main">{header.skipLink}</a>
-    <div class="atf">
+    <div class="atf" data-mirror={page.hero?.mirror ? "true" : undefined}>
       {
         page.hero && (
           <HeroPhoto
             image={page.hero.image}
             alt={page.hero.imageAlt}
             objectPosition={page.hero.objectPosition}
+            mirror={page.hero.mirror}
           />
         )
       }

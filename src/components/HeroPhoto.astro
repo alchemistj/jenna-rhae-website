@@ -12,8 +12,10 @@ interface Props {
   image: ImageKey;
   alt: string;
   objectPosition?: string;
+  /** Flip horizontally. The stylesheet applies it from tablet width up. */
+  mirror?: boolean;
 }
-const { image, alt, objectPosition = "center center" } = Astro.props;
+const { image, alt, objectPosition = "center center", mirror = false } = Astro.props;
 const heroFile = image === "hero-home" ? "hero-home-wheat.jpg" : `${image}.jpg`;
 const photo = await getHeroPhoto(heroFile);
 ---
@@ -29,6 +31,7 @@ const photo = await getHeroPhoto(heroFile);
   fetchpriority="high"
   data-ff-lcp-hero
   data-hero={image}
+  data-mirror={mirror ? "true" : undefined}
   style={`object-position: ${objectPosition}`}
 />
 <div class="atf-scrim" aria-hidden="true"></div>

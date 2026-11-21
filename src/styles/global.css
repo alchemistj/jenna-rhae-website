@@ -157,11 +157,26 @@
       );
     }
 
-    /* Cover at this width shows the whole photo, so object-position cannot
-       move a subject sideways. Widen the image and slide it instead. */
-    .atf-photo[data-hero="hero-trauma"] {
-      width: 390%;
-      left: 0;
+    /* A mirrored photo stays at normal cover size. Phones are not flipped.
+       The copy stops short of the subject, which cover cannot slide sideways. */
+    .atf-photo[data-mirror="true"] {
+      transform: scaleX(-1);
+    }
+
+    .atf[data-mirror="true"] .hero-copy {
+      max-width: 36rem;
+    }
+
+    .atf[data-mirror="true"] .atf-scrim {
+      background: linear-gradient(
+        90deg,
+        rgba(28, 28, 28, 0.92) 0%,
+        rgba(28, 28, 28, 0.86) 24%,
+        rgba(28, 28, 28, 0.74) 48%,
+        rgba(28, 28, 28, 0.64) 58%,
+        rgba(28, 28, 28, 0.2) 66%,
+        rgba(28, 28, 28, 0) 76%
+      );
     }
 
     .atf-photo[data-hero="hero-kc"] {
@@ -173,6 +188,10 @@
       width: 240%;
       left: -4%;
     }
+  }
+
+  .hero-copy {
+    max-width: 44rem;
   }
 
   .hero {
@@ -931,8 +950,8 @@
 
   @media (min-width: 1280px) {
     .footer-columns {
-      grid-template-columns: 10.5rem minmax(17.75rem, 1.35fr) minmax(9.5rem, 0.8fr) minmax(16rem, 1.45fr);
-      column-gap: 1rem;
+      grid-template-columns: 10.5rem minmax(17.5rem, 1.2fr) minmax(10.75rem, 0.75fr) minmax(13.5rem, 1.15fr);
+      column-gap: 0.75rem;
     }
   }
 
