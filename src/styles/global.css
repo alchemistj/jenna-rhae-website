@@ -134,6 +134,7 @@
     max-width: none;
     height: calc(100% - var(--header-h));
     object-fit: cover;
+    object-position: var(--hero-pos, center center);
   }
 
   .atf-scrim {
@@ -179,14 +180,23 @@
       );
     }
 
-    .atf-photo[data-hero="hero-kc"] {
-      width: 230%;
-      left: -55%;
+  }
+
+  /* Contact's hand sits in the lower part of a wide photo, so a phone crop
+     cannot move it above the type. Darken that scrim until the cream type clears 4.5:1. */
+  @media (max-width: 767px) {
+    .atf:has(.atf-photo[data-hero="hero-contact"]) .atf-scrim {
+      background: linear-gradient(
+        0deg,
+        rgba(28, 28, 28, 0.92) 0%,
+        rgba(28, 28, 28, 0.86) 38%,
+        rgba(28, 28, 28, 0.62) 62%,
+        rgba(28, 28, 28, 0) 86%
+      );
     }
 
-    .atf-photo[data-hero="hero-contact"] {
-      width: 240%;
-      left: -4%;
+    .atf-photo[data-hero="hero-trauma"] {
+      object-position: 22% 30%;
     }
   }
 
@@ -852,6 +862,18 @@
     .frame-contain.mobile-photo-first .two-col-photo {
       width: min(100%, 280px);
       margin-inline: auto;
+      /* Trimmed cover (328x410 source, 34px top, 29px bottom, 26px right). */
+      aspect-ratio: 302 / 347;
+    }
+
+    .frame-contain.mobile-photo-first .two-col-photo img {
+      position: absolute;
+      left: 0;
+      top: calc(100% * -34 / 347);
+      width: calc(100% * 328 / 302);
+      height: calc(100% * 410 / 347);
+      max-width: none;
+      object-fit: fill;
     }
   }
 
@@ -949,9 +971,13 @@
   }
 
   @media (min-width: 1280px) {
+    .site-footer .container-narrow {
+      max-width: 72rem;
+    }
+
     .footer-columns {
-      grid-template-columns: 10.5rem minmax(17.5rem, 1.2fr) minmax(10.75rem, 0.75fr) minmax(13.5rem, 1.15fr);
-      column-gap: 0.75rem;
+      grid-template-columns: 12rem minmax(17.75rem, 0.85fr) minmax(11rem, 0.65fr) minmax(19rem, 1.45fr);
+      column-gap: 2rem;
     }
   }
 

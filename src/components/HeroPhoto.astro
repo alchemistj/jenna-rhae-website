@@ -1,6 +1,6 @@
 ---
 /**
- * The hero photo, first element in <body>. One final AVIF inlined once as a data URI (35 to 60 KB), a real <img>,
+ * The hero photo, first element in <body>. One final AVIF inlined once as a data URI (at most 80 KB), a real <img>,
  * eager, high priority, sync decoding, with real width and height. No preload, no placeholder, no fade.
  * The scrim comes after the <img> in source, so nothing paints ahead of the photo.
  * The scrim is a gradient behind the text, not a full dark overlay.
@@ -32,6 +32,6 @@ const photo = await getHeroPhoto(heroFile);
   data-ff-lcp-hero
   data-hero={image}
   data-mirror={mirror ? "true" : undefined}
-  style={`object-position: ${objectPosition}`}
+  style={`--hero-pos: ${objectPosition}`}
 />
 <div class="atf-scrim" aria-hidden="true"></div>
