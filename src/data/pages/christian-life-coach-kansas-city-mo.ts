@@ -15,7 +15,7 @@ const page = {
   hero: {
     image: "hero-kc",
     imageAlt: "Two women talking over coffee",
-    objectPosition: "72% center",
+    objectPosition: "center 40%",
     eyebrow: "Kansas City, MO",
     title: "Christian Life Coach in Kansas City MO — Jenna White",
     subtitleBold:

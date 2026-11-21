@@ -20,7 +20,7 @@ const page = {
   hero: {
     image: "hero-contact",
     imageAlt: "Hands around a warm coffee mug with an open journal — contact Jenna White",
-    objectPosition: "78% center",
+    objectPosition: "center 48%",
     overlayOpacity: 45,
     eyebrow: "Get in Touch",
     title: "Let's Talk — Book Your Free Consultation",

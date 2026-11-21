@@ -73,12 +73,7 @@
     font-weight: 600;
     font-size: 1.25rem;
     line-height: 1.25;
-  }
-
-  @media (min-width: 1440px) {
-    h3 {
-      font-size: 1.375rem;
-    }
+    text-wrap: balance;
   }
 
   main p,
@@ -122,6 +117,7 @@
   /* First frame: the whole above-the-fold block paints together once its last element has been parsed. */
   .atf {
     position: relative;
+    overflow: hidden;
     padding-top: var(--header-h);
   }
 
@@ -132,9 +128,10 @@
   .atf-photo {
     position: absolute;
     left: 0;
-    right: 0;
+    right: auto;
     top: var(--header-h);
     width: 100%;
+    max-width: none;
     height: calc(100% - var(--header-h));
     object-fit: cover;
   }
@@ -150,7 +147,31 @@
 
   @media (min-width: 768px) {
     .atf-scrim {
-      background: linear-gradient(90deg, rgba(28, 28, 28, 0.68) 0%, rgba(28, 28, 28, 0.42) 40%, rgba(28, 28, 28, 0.16) 62%, rgba(28, 28, 28, 0) 80%);
+      background: linear-gradient(
+        90deg,
+        rgba(28, 28, 28, 0.88) 0%,
+        rgba(28, 28, 28, 0.78) 24%,
+        rgba(28, 28, 28, 0.5) 46%,
+        rgba(28, 28, 28, 0.16) 66%,
+        rgba(28, 28, 28, 0) 80%
+      );
+    }
+
+    /* Cover at this width shows the whole photo, so object-position cannot
+       move a subject sideways. Widen the image and slide it instead. */
+    .atf-photo[data-hero="hero-trauma"] {
+      width: 390%;
+      left: 0;
+    }
+
+    .atf-photo[data-hero="hero-kc"] {
+      width: 230%;
+      left: -55%;
+    }
+
+    .atf-photo[data-hero="hero-contact"] {
+      width: 240%;
+      left: -4%;
     }
   }
 
@@ -366,9 +387,12 @@
     list-style: none;
     padding: 1.25rem 2rem 1.25rem 0;
     min-height: 48px;
-    font-weight: 700;
-    font-size: 1.125rem;
     position: relative;
+  }
+
+  .faq-item summary h3 {
+    display: block;
+    text-wrap: balance;
   }
 
   .faq-item summary::-webkit-details-marker {
@@ -471,6 +495,11 @@
     min-height: var(--embed-h-mobile, 900px);
   }
 
+  .deferred-embed[data-fit="true"] {
+    min-height: 0;
+    height: var(--embed-h-mobile, 640px);
+  }
+
   .deferred-embed iframe {
     position: absolute;
     inset: 0;
@@ -503,6 +532,11 @@
   @media (min-width: 768px) {
     .deferred-embed {
       min-height: var(--embed-h, 820px);
+    }
+
+    .deferred-embed[data-fit="true"] {
+      min-height: 0;
+      height: var(--embed-h, 640px);
     }
   }
 
@@ -694,17 +728,23 @@
   }
 
   @media (min-width: 768px) {
-    .frame-portrait .two-col-photo,
+    /* Match the text column. The row height comes from the copy, so a photo
+       cannot grow past it, and it does not leave a gap underneath. */
+    .frame-portrait .two-col-photo {
+      align-self: stretch;
+      width: 100%;
+      max-width: 100%;
+      height: 100%;
+      min-height: 0;
+      aspect-ratio: auto;
+    }
+
     .frame-contain .two-col-photo {
       align-self: start;
       width: 100%;
       max-width: 100%;
       height: auto;
       min-height: 0;
-      aspect-ratio: 4 / 5;
-    }
-
-    .frame-contain .two-col-photo {
       aspect-ratio: 2 / 3;
     }
 
@@ -741,7 +781,9 @@
   .flower-divider {
     display: flex;
     justify-content: center;
-    padding: 0.15rem 0;
+    align-items: center;
+    padding: 2.5rem 0;
+    background-color: var(--color-cream);
   }
 
   .flower-divider:last-child {
@@ -760,26 +802,43 @@
     margin: 0;
   }
 
-  @media (max-width: 767px) {
-    .about-flow {
-      padding-top: 0;
-      padding-bottom: 0;
-      margin-bottom: 1.75rem;
+  .about-flow {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
+  .about-flow-first {
+    padding-top: 4rem;
+  }
+
+  .about-flow:last-child {
+    padding-bottom: 4rem;
+  }
+
+  @media (min-width: 768px) {
+    .about-flow-first {
+      padding-top: 6rem;
     }
 
+    .about-flow:last-child {
+      padding-bottom: 6rem;
+    }
+  }
+
+  @media (max-width: 767px) {
     .about-flow .two-col {
       gap: 1.75rem;
     }
 
-    .about-flow-first {
-      margin-top: 2rem;
+    .frame-contain.mobile-photo-first .two-col-photo {
+      width: min(100%, 280px);
+      margin-inline: auto;
     }
-
   }
 
   .tenacious-section {
     padding-top: 4rem;
-    padding-bottom: 1.75rem;
+    padding-bottom: 2rem;
   }
 
   @media (min-width: 768px) {
@@ -837,15 +896,59 @@
     margin-top: auto;
   }
 
+  .article-body {
+    padding-top: 1.75rem;
+    padding-bottom: 0;
+  }
+
+  .article-body .wp-prose > :last-child {
+    margin-bottom: 0;
+  }
+
+  .author-section {
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+  }
+
+  @media (min-width: 768px) {
+    .author-section {
+      padding-top: 3rem;
+      padding-bottom: 4rem;
+    }
+  }
+
+  .footer-columns {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .footer-columns {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .footer-columns {
+      grid-template-columns: 10.5rem minmax(17.75rem, 1.35fr) minmax(9.5rem, 0.8fr) minmax(16rem, 1.45fr);
+      column-gap: 1rem;
+    }
+  }
+
   @media (min-width: 768px) {
     .blog-card {
       flex-direction: row;
-      align-items: stretch;
+      align-items: flex-start;
       gap: 2rem;
     }
 
     .blog-card-photo {
       flex: 0 0 42%;
+      width: 42%;
+      height: auto;
+      aspect-ratio: 3 / 2;
+      align-self: flex-start;
     }
 
     .blog-card-copy {

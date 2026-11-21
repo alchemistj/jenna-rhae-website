@@ -23,6 +23,8 @@ interface Props {
   bare?: boolean;
   /** Size this iframe with SpringboardCRM's resizer, loaded with the iframe. */
   autosize?: boolean;
+  /** Drop the reserved min-height and size the box to the iframe's reported height. */
+  fit?: boolean;
   /** Iframe id: widget id, underscore, number. */
   frameId?: string;
   /** Visible label of the button that sits in the box until the embed loads. */
@@ -37,6 +39,7 @@ const {
   id,
   bare = false,
   autosize = false,
+  fit = false,
   frameId,
   placeholderLabel,
 } = Astro.props;
@@ -45,6 +48,7 @@ const {
 <div
   id={id}
   class:list={["deferred-embed", bare && "deferred-embed-bare"]}
+  data-fit={fit ? "true" : undefined}
   data-deferred-iframe
   data-src={src}
   data-title={title}

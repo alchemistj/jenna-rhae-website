@@ -360,7 +360,7 @@ let aboutSplits = 0;
 
         case "wp":
           return (
-            <Section outerClass={page.article ? "pt-7 pb-16 md:pb-24" : undefined}>
+            <Section outerClass={page.article ? "article-body" : undefined}>
               <WpRuns runs={block.runs} />
             </Section>
           );
@@ -375,6 +375,7 @@ let aboutSplits = 0;
                 image={block.image}
                 alt={block.alt}
                 side={block.side}
+                photoFirstOnMobile={tenacious}
                 objectPosition={block.objectPosition}
                 frame={block.frame}
               >
@@ -389,7 +390,7 @@ let aboutSplits = 0;
           return (
             <Section id="trauma-quiz" outerClass="pb-12 pt-10 md:pb-20 md:pt-16">
               {page.h1 && <h1 class="script-title mb-8 text-center">{lockHeading(page.h1)}</h1>}
-              <DeferredIframe src={QUIZ_URL} title={block.title} noscriptLabel={block.noscriptLabel} />
+              <DeferredIframe src={QUIZ_URL} title={block.title} noscriptLabel={block.noscriptLabel} fit height={640} mobileHeight={700} />
             </Section>
           );
 
@@ -451,7 +452,7 @@ let aboutSplits = 0;
 
         case "author":
           return (
-            <Section compact>
+            <Section outerClass="author-section">
               <div class="author-box mx-auto max-w-[44rem]">
                 <WpFigure image={block.image} alt={block.alt} kind="author" />
                 <div>
